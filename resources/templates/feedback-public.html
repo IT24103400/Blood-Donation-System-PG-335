@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feedback - Give Blood, Give Life</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      min-height: 100vh;
+    }
+
+    /* Header - Matching index.html style */
+    .header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      transition: all 0.3s ease;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-links {
+      display: flex;
+      list-style: none;
+      gap: 2rem;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: #374151;
+      font-weight: 500;
+      transition: color 0.3s ease;
+      position: relative;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: #dc2626;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: -5px;
+      left: 0;
+      background: #dc2626;
+      transition: width 0.3s ease;
+    }
+
+    .nav-links a:hover::after,
+    .nav-links a.active::after {
+      width: 100%;
+    }
+
+    .auth-buttons {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .btn-outline {
+      padding: 0.5rem 1rem;
+      border: 2px solid #dc2626;
+      color: #dc2626;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-outline:hover {
+      background: #dc2626;
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      padding: 0.5rem 1rem;
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+    }
+
+    /* Feedback Section */
+    .feedback-section {
+      padding-top: 100px;
+      min-height: 100vh;
+    }
+
+    .feedback-card {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+      border-left: 4px solid #dc2626;
+      transition: transform 0.3s ease;
+    }
+
+    .feedback-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .feedback-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .feedback-content {
+      padding: 1.5rem;
+    }
+
+    .feedback-reply {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border-left: 4px solid #3b82f6;
+      padding: 1.5rem;
+      margin-top: 1rem;
+      border-radius: 0 0 15px 15px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+    }
+
+    .status-badge {
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.8rem;
+    }
+
+    .status-approved {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+    }
+
+    .form-section {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-fade {
+      animation: fadeIn 0.6s ease forwards;
+    }
+
+    /* Footer - Matching index.html style */
+    .footer {
+      background: linear-gradient(135deg, #1f2937, #111827);
+      color: white;
+      padding: 3rem 0 2rem;
+      margin-top: 4rem;
+    }
+
+    .footer-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    .footer-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .footer-section h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: #dc2626;
+    }
+
+    .footer-section p, .footer-section a {
+      color: #d1d5db;
+      text-decoration: none;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .footer-section a:hover {
+      color: #dc2626;
+    }
+
+    .emergency-hotline {
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      padding: 1rem;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .emergency-hotline h4 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .emergency-hotline .phone {
+      font-size: 1.5rem;
+      font-weight: 900;
+    }
+
+    .footer-bottom {
+      border-top: 1px solid #374151;
+      padding-top: 1rem;
+      text-align: center;
+      color: #9ca3af;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .nav {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+      }
+
+      .nav-links {
+        gap: 1rem;
+      }
+
+      .feedback-section {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+
+      .auth-buttons {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .btn-outline, .btn-primary {
+        text-align: center;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+<!-- Header - Matching index.html -->
+<header class="header">
+  <nav class="nav">
+    <div class="logo">Give Blood, Give Life</div>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/feedback" class="active">Feedback</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <div class="auth-buttons">
+      <a href="/login" class="btn-outline">Login</a>
+      <a href="/register" class="btn-primary">Register</a>
+    </div>
+  </nav>
+</header>
+
+<div class="feedback-section">
+  <div class="container">
+    <!-- Flash Messages -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="fas fa-check-circle me-2"></i>
+      <span th:text="${successMessage}"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="fas fa-exclamation-circle me-2"></i>
+      <span th:text="${errorMessage}"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-8 mx-auto">
+        <h1 class="text-center mb-4">Community Feedback</h1>
+        <p class="text-center text-muted mb-5">See what others are saying about our blood donation platform</p>
+
+        <!-- Feedback Form -->
+        <div class="form-section animate-fade">
+          <h3 class="mb-3"><i class="fas fa-comment me-2"></i>Share Your Feedback</h3>
+          <form th:action="@{/submit-feedback}" method="post" th:object="${feedbackDTO}">
+            <input type="hidden" name="redirectTo" value="dashboard">
+            <div class="mb-3">
+              <label class="form-label">Your Feedback *</label>
+              <textarea class="form-control" th:field="*{content}" rows="4"
+                        placeholder="Share your experience, suggestions, or thoughts about our blood donation platform..."
+                        required maxlength="1000"></textarea>
+              <div class="form-text">Maximum 1000 characters</div>
+            </div>
+            <div th:if="${session.user != null}">
+              <button type="submit" class="btn btn-danger">
+                <i class="fas fa-paper-plane me-2"></i>Submit Feedback
+              </button>
+            </div>
+            <div th:unless="${session.user != null}">
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Please <a href="/login" class="alert-link">login</a> to submit feedback.
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Feedback List -->
+        <div th:if="${feedbacks != null and not #lists.isEmpty(feedbacks)}">
+          <h3 class="mb-4"><i class="fas fa-comments me-2"></i>Community Feedback (<span th:text="${feedbacks.size()}"></span>)</h3>
+
+          <div th:each="feedback : ${feedbacks}" class="feedback-card animate-fade">
+            <div class="feedback-header">
+              <div class="d-flex align-items-center">
+                <div class="user-avatar me-3"
+                     th:text="${feedback.user.firstName.substring(0,1).toUpperCase() + feedback.user.lastName.substring(0,1).toUpperCase()}">
+                </div>
+                <div>
+                  <h6 class="mb-0" th:text="${feedback.user.firstName + ' ' + feedback.user.lastName}"></h6>
+                  <small class="text-muted" th:text="${#temporals.format(feedback.createdAt, 'MMM dd, yyyy HH:mm')}"></small>
+                </div>
+              </div>
+              <span class="status-badge status-approved">APPROVED</span>
+            </div>
+
+            <div class="feedback-content">
+              <p class="mb-0" th:text="${feedback.content}"></p>
+            </div>
+
+            <div th:if="${feedback.adminReply != null}" class="feedback-reply">
+              <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-reply text-primary me-2"></i>
+                <strong>Admin Response</strong>
+                <small class="text-muted ms-2" th:text="${#temporals.format(feedback.repliedAt, 'MMM dd, yyyy HH:mm')}"></small>
+              </div>
+              <p class="mb-0" th:text="${feedback.adminReply}"></p>
+            </div>
+          </div>
+        </div>
+
+        <div th:if="${feedbacks == null or #lists.isEmpty(feedbacks)}" class="text-center py-5">
+          <i class="fas fa-comments fs-1 text-muted mb-3 d-block"></i>
+          <h4 class="text-muted">No feedback yet</h4>
+          <p class="text-muted">Be the first to share your thoughts about our platform!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer - Matching index.html -->
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3>Contact Information</h3>
+        <p>📧 info@givebloodgivelife.lk</p>
+        <p>📍 123 Main Street, Colombo 01, Sri Lanka</p>
+        <p>🕒 24/7 Emergency Service Available</p>
+      </div>
+      <div class="footer-section">
+        <h3>Quick Links</h3>
+        <a href="#about">About Us</a>
+        <a href="#eligibility">Donation Eligibility</a>
+        <a href="#locations">Blood Bank Locations</a>
+        <a href="#faq">Frequently Asked Questions</a>
+      </div>
+      <div class="footer-section">
+        <div class="emergency-hotline">
+          <h4>Emergency Blood Request</h4>
+          <div class="phone">📞 1919</div>
+          <p>Available 24/7 for urgent requests</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 Give Blood, Give Life. All rights reserved. | Developed by Team Blood Heroes</p>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Character counter for feedback textarea
+  document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.querySelector('textarea');
+    if (textarea) {
+      const charCount = document.createElement('div');
+      charCount.className = 'form-text text-end';
+      charCount.textContent = '0/1000 characters';
+
+      textarea.parentNode.appendChild(charCount);
+
+      textarea.addEventListener('input', function() {
+        const length = this.value.length;
+        charCount.textContent = length + '/1000 characters';
+
+        if (length > 1000) {
+          charCount.classList.add('text-danger');
+        } else {
+          charCount.classList.remove('text-danger');
+        }
+      });
+    }
+
+    // Header background on scroll
+    window.addEventListener('scroll', () => {
+      const header = document.querySelector('.header');
+      if (window.scrollY > 100) {
+        header.style.background = 'rgba(255, 255, 255, 0.98)';
+        header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
+      } else {
+        header.style.background = 'rgba(255, 255, 255, 0.95)';
+        header.style.boxShadow = 'none';
+      }
+    });
+
+    // Smooth scrolling for navigation links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+  });
+</script>
+</body>
+</html>
