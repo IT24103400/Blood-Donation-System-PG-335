@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isEditing ? 'Edit Camp' : 'Create Camp'}">Manage Camp - Give Blood, Give Life</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            border: none;
+            margin-bottom: 20px;
+        }
+        .btn-volunteer {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-volunteer:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+        .btn-camp {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-camp:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .form-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+        }
+        .section-title {
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            color: #2c5530;
+            font-weight: 600;
+        }
+        .required-field::after {
+            content: " *";
+            color: #dc3545;
+        }
+        .form-control:focus {
+            border-color: #10b981;
+            box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.25);
+        }
+        .form-text {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #10b981;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="ms-3">
+        <span th:text="${isEditing} ? 'Updating Camp...' : 'Creating Camp...'"></span>
+    </div>
+</div>
+
+<header class="header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="h3 mb-0" th:text="${isEditing ? 'Edit Blood Donation Camp' : 'Create Blood Donation Camp'}">Manage Camp</h1>
+            <nav>
+                <a href="/volunteer/dashboard" class="text-white mx-2 text-decoration-none">Dashboard</a>
+                <a href="/volunteer/camps" class="text-white mx-2 text-decoration-none">My Camps</a>
+                <a href="/logout" class="text-white mx-2 text-decoration-none">Logout</a>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<div class="container mt-4">
+    <div class="form-container">
+        <!-- Flash Messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="card">
+            <div class="card-header" th:classappend="${isEditing} ? 'bg-warning text-dark' : 'bg-primary text-white'">
+                <h5 class="mb-0">
+                    <i class="fas me-2" th:classappend="${isEditing} ? 'fa-edit' : 'fa-plus'"></i>
+                    <span th:text="${isEditing} ? 'Edit Camp Details' : 'Create New Camp'"></span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Form with JavaScript-controlled action -->
+                <form th:action="@{/volunteer/camps/create}" method="post" th:object="${campDTO}" id="campForm">
+
+                    <!-- Hidden field for camp ID when editing -->
+                    <input type="hidden" th:if="${isEditing}" th:field="*{id}" />
+                    <input type="hidden" id="isEditing" th:value="${isEditing}" />
+
+                    <!-- Basic Information Section -->
+                    <div class="form-section">
+                        <h5 class="section-title"><i class="fas fa-info-circle me-2"></i>Basic Information</h5>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label required-field">Camp Name</label>
+                                    <input type="text" class="form-control" th:field="*{campName}"
+                                           placeholder="Enter camp name" required
+                                           th:classappend="${#fields.hasErrors('campName')} ? 'is-invalid'">
+                                    <div class="form-text">Give your camp a descriptive and appealing name</div>
+                                    <div th:if="${#fields.hasErrors('campName')}" class="invalid-feedback">
+                                        Please provide a camp name
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label required-field">Description</label>
+                            <textarea class="form-control" th:field="*{description}" rows="4"
+                                      placeholder="Describe the purpose, importance, and details of this blood donation camp..."
+                                      required
+                                      th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"></textarea>
+                            <div class="form-text">Provide comprehensive details to attract donors and explain the camp's purpose</div>
+                            <div th:if="${#fields.hasErrors('description')}" class="invalid-feedback">
+                                Please provide a camp description
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location & Date Section -->
+                    <div class="form-section">
+                        <h5 class="section-title"><i class="fas fa-map-marker-alt me-2"></i>Location & Schedule</h5>
+
+                        <div class="mb-3">
+                            <label class="form-label required-field">Location</label>
+                            <input type="text" class="form-control" th:field="*{location}"
+                                   placeholder="Enter full address, venue name, and any landmarks"
+                                   required
+                                   th:classappend="${#fields.hasErrors('location')} ? 'is-invalid'">
+                            <div class="form-text">Include venue name, full address, and any helpful landmarks or directions</div>
+                            <div th:if="${#fields.hasErrors('location')}" class="invalid-feedback">
+                                Please provide a location
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label required-field">Camp Date</label>
+                                    <input type="date" class="form-control" th:field="*{campDate}"
+                                           th:min="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}"
+                                           required
+                                           th:classappend="${#fields.hasErrors('campDate')} ? 'is-invalid'"
+                                           id="campDate">
+                                    <div class="form-text">Select a future date for the camp</div>
+                                    <div th:if="${#fields.hasErrors('campDate')}" class="invalid-feedback">
+                                        Please select a valid future date
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label required-field">Start Time</label>
+                                    <input type="time" class="form-control" th:field="*{startTime}"
+                                           required
+                                           th:classappend="${#fields.hasErrors('startTime')} ? 'is-invalid'"
+                                           id="startTime">
+                                    <div class="form-text">When the camp begins</div>
+                                    <div th:if="${#fields.hasErrors('startTime')}" class="invalid-feedback">
+                                        Please select start time
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label required-field">End Time</label>
+                                    <input type="time" class="form-control" th:field="*{endTime}"
+                                           required
+                                           th:classappend="${#fields.hasErrors('endTime')} ? 'is-invalid'"
+                                           id="endTime">
+                                    <div class="form-text">When the camp concludes</div>
+                                    <div th:if="${#fields.hasErrors('endTime')}" class="invalid-feedback">
+                                        Please select end time
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Capacity Section -->
+                    <div class="form-section">
+                        <h5 class="section-title"><i class="fas fa-users me-2"></i>Capacity & Logistics</h5>
+
+                        <div class="mb-3">
+                            <label class="form-label required-field">Maximum Donors</label>
+                            <input type="number" class="form-control" th:field="*{maxDonors}"
+                                   min="1" max="500" placeholder="50"
+                                   required
+                                   th:classappend="${#fields.hasErrors('maxDonors')} ? 'is-invalid'">
+                            <div class="form-text">Set the maximum number of donors this camp can accommodate based on venue capacity and staff availability</div>
+                            <div th:if="${#fields.hasErrors('maxDonors')}" class="invalid-feedback">
+                                Please set a valid capacity (1-500)
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="/volunteer/camps" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-arrow-left me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-camp" id="submitBtn">
+                            <i class="fas me-1" id="submitIcon" th:classappend="${isEditing} ? 'fa-save' : 'fa-calendar-plus'"></i>
+                            <span id="submitText" th:text="${isEditing} ? 'Update Camp' : 'Create Camp'"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Validation Tips -->
+        <div class="card mt-4">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Camp Organization Best Practices</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-calendar-check text-success me-2"></i>Scheduling Tips</h6>
+                        <ul class="list-unstyled small mb-3">
+                            <li><i class="fas fa-check text-success me-2"></i> Choose weekends for better turnout</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Plan 6-8 hour duration for optimal flow</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Avoid major holidays</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Consider seasonal factors</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-map-marked-alt text-primary me-2"></i>Location Tips</h6>
+                        <ul class="list-unstyled small">
+                            <li><i class="fas fa-check text-success me-2"></i> Choose easily accessible locations</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Ensure adequate parking space</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Consider public transportation access</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Verify venue has necessary facilities</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('campForm');
+        const isEditing = document.getElementById('isEditing').value === 'true';
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const submitBtn = document.getElementById('submitBtn');
+        const submitIcon = document.getElementById('submitIcon');
+        const submitText = document.getElementById('submitText');
+
+        console.log('Form initialized. Is Editing:', isEditing);
+
+        // Set form action based on editing mode
+        if (isEditing) {
+            form.action = '/volunteer/camps/update';
+            console.log('Form action set to:', form.action);
+        } else {
+            console.log('Form action set to:', form.action);
+        }
+
+        // Set minimum date to today
+        const today = new Date().toISOString().split('T')[0];
+        const campDate = document.getElementById('campDate');
+        campDate.min = today;
+
+        // Form submission handler
+        form.addEventListener('submit', function(e) {
+            console.log('Form submission started...');
+
+            let isValid = true;
+            const selectedDate = campDate.value;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+
+            // Validate date is not in past
+            if (selectedDate < today) {
+                alert('❌ Please select a future date for the camp.');
+                campDate.focus();
+                isValid = false;
+            }
+
+            // Validate time slot
+            if (startTime && endTime && startTime >= endTime) {
+                alert('❌ End time must be after start time.');
+                document.getElementById('endTime').focus();
+                isValid = false;
+            }
+
+            // Validate minimum duration (at least 2 hours)
+            if (startTime && endTime && isValid) {
+                const start = new Date(`2000-01-01T${startTime}`);
+                const end = new Date(`2000-01-01T${endTime}`);
+                const duration = (end - start) / (1000 * 60 * 60); // hours
+
+                if (duration < 2) {
+                    if (!confirm('⚠️ Recommended minimum camp duration is 2 hours for proper donor management. Continue anyway?')) {
+                        isValid = false;
+                    }
+                }
+
+                if (duration > 12) {
+                    if (!confirm('⚠️ Very long camp duration detected. Consider breaking into multiple sessions. Continue anyway?')) {
+                        isValid = false;
+                    }
+                }
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                console.log('Form validation failed');
+            } else {
+                // Show loading overlay
+                loadingOverlay.style.display = 'flex';
+
+                // Disable submit button to prevent double submission
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Processing...';
+
+                console.log('Form validation passed, submitting to:', form.action);
+
+                // Form will submit normally, the overlay will be removed on page reload
+            }
+        });
+
+        // Real-time validation feedback
+        const formFields = ['campDate', 'startTime', 'endTime'];
+        formFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.addEventListener('change', function() {
+                    validateForm();
+                });
+            }
+        });
+
+        function validateForm() {
+            const dateValid = campDate.value >= today;
+            const startTimeVal = document.getElementById('startTime').value;
+            const endTimeVal = document.getElementById('endTime').value;
+            const timeValid = !startTimeVal || !endTimeVal || startTimeVal < endTimeVal;
+
+            // Update validation states
+            campDate.classList.toggle('is-valid', dateValid && campDate.value);
+            campDate.classList.toggle('is-invalid', !dateValid && campDate.value);
+
+            if (startTimeVal && endTimeVal) {
+                document.getElementById('startTime').classList.toggle('is-valid', timeValid);
+                document.getElementById('endTime').classList.toggle('is-valid', timeValid);
+                document.getElementById('startTime').classList.toggle('is-invalid', !timeValid);
+                document.getElementById('endTime').classList.toggle('is-invalid', !timeValid);
+            }
+        }
+
+        // Auto-hide alerts after 5 seconds
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+
+        // Handle page refresh/back button - restore button state
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                // Page was restored from cache, reset button state
+                submitBtn.disabled = false;
+                submitIcon.className = isEditing ? 'fas fa-save me-1' : 'fas fa-calendar-plus me-1';
+                submitText.textContent = isEditing ? 'Update Camp' : 'Create Camp';
+                loadingOverlay.style.display = 'none';
+            }
+        });
+    });
+</script>
+</body>
+</html>

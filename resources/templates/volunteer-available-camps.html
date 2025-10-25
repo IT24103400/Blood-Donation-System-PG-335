@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Available Camps - Give Blood, Give Life</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      font-family: 'Inter', sans-serif;
+    }
+    .header {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: white;
+      padding: 15px;
+    }
+    .camp-card {
+      border-left: 4px solid #10b981;
+      transition: transform 0.3s ease;
+    }
+    .camp-card:hover {
+      transform: translateY(-2px);
+    }
+    .stats-badge {
+      font-size: 0.8rem;
+      padding: 4px 8px;
+    }
+    .urgency-high {
+      border-left: 4px solid #ef4444 !important;
+    }
+    .urgency-medium {
+      border-left: 4px solid #f59e0b !important;
+    }
+  </style>
+</head>
+<body>
+<header class="header">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center">
+      <h1 class="h3 mb-0">Available Camps for Attendance</h1>
+      <nav>
+        <a href="/volunteer/dashboard" class="text-white mx-2 text-decoration-none">Dashboard</a>
+        <a href="/volunteer/camps" class="text-white mx-2 text-decoration-none">My Camps</a>
+        <a href="/logout" class="text-white mx-2 text-decoration-none">Logout</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<div class="container mt-4">
+  <!-- Flash Messages -->
+  <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+    <i class="fas fa-check-circle me-2"></i>
+    <span th:text="${success}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+    <i class="fas fa-exclamation-circle me-2"></i>
+    <span th:text="${error}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <form method="get" class="d-flex">
+            <input type="text"
+                   name="search"
+                   class="form-control me-2"
+                   placeholder="Search camps by name or location..."
+                   th:value="${searchQuery}">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-search me-1"></i> Search
+            </button>
+          </form>
+        </div>
+        <div class="col-md-6">
+          <div class="d-flex gap-2">
+            <select name="filter" class="form-select" onchange="this.form.submit()" th:value="${filter}">
+              <option value="">All Camps</option>
+              <option value="today">Today's Camps</option>
+              <option value="upcoming">Upcoming Camps</option>
+              <option value="with-registrations">With Registrations</option>
+            </select>
+            <a href="/volunteer/available-camps" class="btn btn-outline-secondary">
+              <i class="fas fa-sync me-1"></i> Clear
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Camps List -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">
+            <i class="fas fa-campground me-2"></i>
+            Available Camps for Attendance Management
+            <span class="badge bg-light text-dark ms-2" th:text="${totalCamps}">0</span>
+          </h5>
+        </div>
+        <div class="card-body">
+          <div th:if="${camps != null and not camps.isEmpty()}">
+            <div th:each="campInfo : ${camps}" class="card camp-card mb-3">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col-md-4">
+                    <h5 class="text-success mb-2" th:text="${campInfo.camp.campName}"></h5>
+                    <p class="text-muted mb-2" th:text="${campInfo.camp.description}"></p>
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                      <span class="badge bg-primary stats-badge">
+                        <i class="fas fa-map-marker-alt me-1"></i>
+                        <span th:text="${campInfo.camp.location}"></span>
+                      </span>
+                      <span class="badge bg-info stats-badge">
+                        <i class="fas fa-calendar me-1"></i>
+                        <span th:text="${#temporals.format(campInfo.camp.campDate, 'MMM dd, yyyy')}"></span>
+                      </span>
+                      <span class="badge bg-secondary stats-badge">
+                        <i class="fas fa-clock me-1"></i>
+                        <span th:text="${#temporals.format(campInfo.camp.startTime, 'HH:mm') + ' - ' + #temporals.format(campInfo.camp.endTime, 'HH:mm')}"></span>
+                      </span>
+                    </div>
+                    <div class="small text-muted">
+                      Organized by: <span th:text="${campInfo.camp.organizedBy.firstName + ' ' + campInfo.camp.organizedBy.lastName}"></span>
+                    </div>
+                  </div>
+
+                  <div class="col-md-4">
+                    <div class="row text-center">
+                      <div class="col-4">
+                        <div class="text-primary fw-bold" th:text="${campInfo.registeredDonors}">0</div>
+                        <small class="text-muted">Registered</small>
+                      </div>
+                      <div class="col-4">
+                        <div class="text-success fw-bold" th:text="${campInfo.attendedDonors}">0</div>
+                        <small class="text-muted">Attended</small>
+                      </div>
+                      <div class="col-4">
+                        <div class="text-warning fw-bold" th:text="${campInfo.attendanceRate} + '%'">0%</div>
+                        <small class="text-muted">Attendance</small>
+                      </div>
+                    </div>
+                    <div class="progress mt-2" style="height: 6px;">
+                      <div class="progress-bar"
+                           th:classappend="${campInfo.attendanceRate >= 80 ? 'bg-success' : (campInfo.attendanceRate >= 50 ? 'bg-warning' : 'bg-danger')}"
+                           th:style="'width: ' + ${campInfo.attendanceRate} + '%;'">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-4 text-end">
+                    <div class="btn-group-vertical">
+                      <a th:href="@{/volunteer/camps/{id}/quick-attendance(id=${campInfo.camp.id})}"
+                         class="btn btn-success btn-sm mb-1">
+                        <i class="fas fa-user-check me-1"></i> Mark Attendance
+                      </a>
+                      <a th:href="@{/volunteer/camps/{id}/attendance(id=${campInfo.camp.id})}"
+                         class="btn btn-outline-primary btn-sm mb-1">
+                        <i class="fas fa-users me-1"></i> View Attendance
+                      </a>
+                      <a th:href="@{/volunteer/camps/{id}/registrations(id=${campInfo.camp.id})}"
+                         class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-list me-1"></i> View Registrations
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div th:if="${camps == null or camps.isEmpty()}" class="text-center py-5">
+            <i class="fas fa-campground fs-1 text-muted mb-3"></i>
+            <h5 class="text-muted">No Available Camps Found</h5>
+            <p class="text-muted" th:if="${searchQuery}">No camps match your search criteria.</p>
+            <p class="text-muted" th:unless="${searchQuery}">There are no active camps available for attendance management at the moment.</p>
+            <a href="/volunteer/camps/create" class="btn btn-primary mt-2" th:if="${user.isVolunteerVerified}">
+              <i class="fas fa-plus me-1"></i> Create New Camp
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Auto-hide alerts after 5 seconds
+  setTimeout(() => {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+      const bsAlert = new bootstrap.Alert(alert);
+      bsAlert.close();
+    });
+  }, 5000);
+</script>
+</body>
+</html>
