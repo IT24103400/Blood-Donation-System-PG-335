@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Regional Liaison Dashboard - Give Blood, Give Life</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #fdf6b2 0%, #fce96a 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .profile {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(245, 158, 11, 0.1);
+            border-left: 4px solid #f59e0b;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(245, 158, 11, 0.1);
+            padding: 20px;
+            margin: 10px;
+            border-left: 4px solid #f59e0b;
+            transition: transform 0.3s ease;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.2);
+        }
+
+        .btn-regional {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-regional:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade { animation: fadeIn 0.8s ease-in; }
+
+        .password-modal {
+            background: rgba(0,0,0,0.5);
+        }
+
+        .region-map {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(245, 158, 11, 0.1);
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .map-placeholder {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #d97706;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+<header class="header text-center">
+    <h1 class="mb-2"><i class="fas fa-map-marked-alt me-2"></i>Give Blood, Give Life - Regional Liaison Dashboard</h1>
+    <nav class="d-flex justify-content-center gap-3">
+        <a href="/regional-liaison/dashboard" class="nav-link text-white">Dashboard</a>
+        <a href="/regional-liaison/donors" class="nav-link text-white">Donors</a>
+        <a href="/regional-liaison/hospitals" class="nav-link text-white">Hospitals</a>
+        <a href="/regional-liaison/reports" class="nav-link text-white">Reports</a>
+        <a href="/logout" class="nav-link text-white" onclick="return confirmLogout();">Logout</a>
+    </nav>
+</header>
+
+<div class="container mt-4 animate-fade">
+    <!-- Flash Messages -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Password Change Modal (shown if temp password) -->
+    <div th:if="${requirePasswordChange}" class="modal fade show d-block password-modal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Password Change Required</h5>
+                </div>
+                <div class="modal-body">
+                    <p>For security reasons, please change your temporary password.</p>
+                    <form th:action="@{/regional-liaison/change-password}" method="post" th:object="${passwordChangeDTO}">
+                        <div class="mb-3">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" class="form-control" th:field="*{currentPassword}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <input type="password" class="form-control" th:field="*{newPassword}" required minlength="6">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" th:field="*{confirmPassword}" required>
+                        </div>
+                        <button type="submit" class="btn btn-warning w-100">Change Password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${!requirePasswordChange}">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="profile p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center me-3"
+                             style="width: 60px; height: 60px;">
+                            <i class="fas fa-map-marker-alt text-white fs-4"></i>
+                        </div>
+                        <div>
+                            <h4 class="mb-0" th:text="${user.firstName + ' ' + user.lastName}"></h4>
+                            <span class="badge bg-warning">Regional Liaison</span>
+                        </div>
+                    </div>
+                    <p class="mb-2"><i class="fas fa-envelope text-warning me-2"></i><span th:text="${user.email}"></span></p>
+                    <p class="mb-0"><i class="fas fa-phone text-warning me-2"></i><span th:text="${user.phone ?: 'Not provided'}"></span></p>
+                </div>
+
+                <div class="region-map mt-4">
+                    <h5 class="mb-3"><i class="fas fa-map me-2"></i>Region Overview</h5>
+                    <div class="map-placeholder">
+                        <i class="fas fa-map-marked-alt me-2"></i>Regional Coverage Map
+                    </div>
+                    <div class="mt-3">
+                        <p class="mb-1"><strong>Region:</strong> Central Province</p>
+                        <p class="mb-1"><strong>Districts:</strong> 5</p>
+                        <p class="mb-0"><strong>Population:</strong> 2.5M</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="stats-card text-center">
+                            <div class="stat-number" th:text="${totalDonors}">0</div>
+                            <div class="text-muted fw-semibold"><i class="fas fa-users text-warning me-1"></i> Total Donors</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="stats-card text-center">
+                            <div class="stat-number" th:text="${totalHospitals}">0</div>
+                            <div class="text-muted fw-semibold"><i class="fas fa-hospital text-warning me-1"></i> Hospitals</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="stats-card text-center">
+                            <div class="stat-number" th:text="${pendingRequests}">0</div>
+                            <div class="text-muted fw-semibold"><i class="fas fa-clock text-warning me-1"></i> Pending Requests</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="stats-card text-center">
+                            <div class="stat-number" th:text="${bloodInventory}">0</div>
+                            <div class="text-muted fw-semibold"><i class="fas fa-tint text-warning me-1"></i> Blood Units</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-card mt-3">
+                    <h5 class="mb-3"><i class="fas fa-tachometer-alt me-2"></i>Quick Actions</h5>
+                    <div class="d-grid gap-2 d-md-flex">
+                        <a href="/regional-liaison/donors" class="btn btn-regional me-md-2">
+                            <i class="fas fa-users me-1"></i> Manage Donors
+                        </a>
+                        <a href="/regional-liaison/hospitals" class="btn btn-regional me-md-2">
+                            <i class="fas fa-hospital me-1"></i> View Hospitals
+                        </a>
+                        <a href="/regional-liaison/reports" class="btn btn-regional">
+                            <i class="fas fa-chart-bar me-1"></i> Generate Reports
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="stats-card mt-3">
+                    <h5 class="mb-3"><i class="fas fa-history me-2"></i>Recent Activity</h5>
+                    <div class="list-group">
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <span><i class="fas fa-plus-circle text-success me-2"></i>New donor registration</span>
+                                <small class="text-muted">2 hours ago</small>
+                            </div>
+                        </div>
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <span><i class="fas fa-tint text-danger me-2"></i>Blood request from General Hospital</span>
+                                <small class="text-muted">5 hours ago</small>
+                            </div>
+                        </div>
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <span><i class="fas fa-check-circle text-primary me-2"></i>Inventory updated - Central Blood Bank</span>
+                                <small class="text-muted">1 day ago</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function confirmLogout() {
+        return confirm("Are you sure you want to logout?");
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-hide alerts
+        setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(alert => {
+                bootstrap.Alert.getOrCreateInstance(alert).close();
+            });
+        }, 5000);
+
+        // Counter animations
+        const counters = document.querySelectorAll('.stat-number');
+        counters.forEach(counter => {
+            const target = parseInt(counter.textContent) || 0;
+            let current = 0;
+            const increment = target / 30;
+
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                counter.textContent = Math.floor(current);
+            }, 50);
+        });
+    });
+</script>
+</body>
+</html>

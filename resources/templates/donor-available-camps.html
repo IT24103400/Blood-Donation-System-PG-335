@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Available Camps - Give Blood, Give Life</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      transition: all 0.3s ease;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-links {
+      display: flex;
+      list-style: none;
+      gap: 2rem;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: #374151;
+      font-weight: 500;
+      transition: color 0.3s ease;
+      position: relative;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: #dc2626;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: -5px;
+      left: 0;
+      background: #dc2626;
+      transition: width 0.3s ease;
+    }
+
+    .nav-links a:hover::after,
+    .nav-links a.active::after {
+      width: 100%;
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .user-avatar:hover {
+      transform: scale(1.1);
+      box-shadow: 0 5px 15px rgba(220, 38, 38, 0.3);
+    }
+
+    .user-name {
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .btn-logout {
+      padding: 0.5rem 1rem;
+      background: linear-gradient(135deg, #6b7280, #4b5563);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-logout:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(107, 114, 128, 0.3);
+    }
+
+    /* Main Content */
+    .main-content {
+      padding-top: 100px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-left: 2rem;
+      padding-right: 2rem;
+      padding-bottom: 2rem;
+    }
+
+    .welcome-section {
+      background: white;
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .welcome-header {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 900;
+      font-size: 2rem;
+      box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .welcome-text h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #1f2937, #374151);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+
+    .welcome-text p {
+      color: #6b7280;
+      font-size: 1.1rem;
+    }
+
+    .blood-type-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-top: 1rem;
+      box-shadow: 0 5px 15px rgba(220, 38, 38, 0.3);
+    }
+
+    /* Verification Badge */
+    .verified-badge {
+      display: inline-flex;
+      align-items: center;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+      box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+    }
+
+    .verification-pending {
+      display: inline-flex;
+      align-items: center;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+      box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3);
+    }
+
+    /* Dashboard Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .dashboard-card {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    .dashboard-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .card-icon.camps {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    }
+
+    .card-icon.registrations {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .card-icon.availability {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #1f2937;
+    }
+
+    .stat-large {
+      font-size: 3rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      color: #6b7280;
+      font-weight: 600;
+    }
+
+    /* Camp Cards */
+    .camp-card {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+      border-left: 4px solid #3b82f6;
+    }
+
+    .camp-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .camp-card.full {
+      border-left: 4px solid #dc2626;
+    }
+
+    .camp-card.available {
+      border-left: 4px solid #10b981;
+    }
+
+    .camp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .camp-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 0.5rem;
+    }
+
+    .camp-description {
+      color: #6b7280;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+
+    .camp-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .detail-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .detail-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #374151;
+    }
+
+    .detail-text {
+      flex: 1;
+    }
+
+    .detail-label {
+      font-size: 0.875rem;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .detail-value {
+      font-size: 1rem;
+      color: #1f2937;
+      font-weight: 600;
+    }
+
+    /* Progress Bar */
+    .progress-container {
+      margin-bottom: 1.5rem;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-label {
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .progress-percentage {
+      font-weight: 700;
+      color: #dc2626;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    .progress-fill.warning {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+
+    .progress-fill.danger {
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .badge-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+    }
+
+    .badge-warning {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+    }
+
+    .badge-danger {
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      color: white;
+    }
+
+    .badge-info {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: white;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: white;
+      box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      color: white;
+      box-shadow: 0 5px 15px rgba(220, 38, 38, 0.3);
+    }
+
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
+    }
+
+    .btn:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Section Headers */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1f2937;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 2rem;
+      color: #6b7280;
+    }
+
+    .empty-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .empty-title {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: #374151;
+    }
+
+    .empty-description {
+      margin-bottom: 1.5rem;
+    }
+
+    /* Flash Messages */
+    .alert {
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .alert-success {
+      background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+      color: #065f46;
+      border: 1px solid #10b981;
+    }
+
+    .alert-danger {
+      background: linear-gradient(135deg, #fed7d7, #fbb6ce);
+      color: #991b1b;
+      border: 1px solid #dc2626;
+    }
+
+    .alert-info {
+      background: linear-gradient(135deg, #dbeafe, #93c5fd);
+      color: #1e40af;
+      border: 1px solid #3b82f6;
+    }
+  </style>
+</head>
+<body>
+<!-- Header -->
+<header class="header">
+  <nav class="nav">
+    <div class="logo">Give Blood, Give Life</div>
+    <ul class="nav-links">
+      <li><a href="/dashboard">Dashboard</a></li>
+      <li><a href="/donor/camps" class="active">Available Camps</a></li>
+      <li><a href="/donor/history">Donation History</a></li>
+      <li><a href="/donor/profile">Profile</a></li>
+    </ul>
+
+    <div class="user-menu">
+      <div class="user-avatar" th:text="${user.firstName.substring(0,1).toUpperCase() + user.lastName.substring(0,1).toUpperCase()}">JD</div>
+      <span class="user-name" th:text="${user.firstName + ' ' + user.lastName}">John Doe</span>
+      <a href="/logout" class="btn-logout">Logout</a>
+    </div>
+  </nav>
+</header>
+
+<!-- Main Content -->
+<main class="main-content">
+  <!-- Welcome Section -->
+  <section class="welcome-section">
+    <div class="welcome-header">
+      <div class="profile-avatar" th:text="${user.firstName.substring(0,1).toUpperCase() + user.lastName.substring(0,1).toUpperCase()}">JD</div>
+      <div class="welcome-text">
+        <h1>Available Blood Donation Camps, <span th:text="${user.firstName}">John</span>!</h1>
+        <p>Find and register for blood donation camps organized by verified volunteers in your community.</p>
+        <div class="blood-type-badge" th:text="'Blood Type: ' + ${user.bloodType ?: 'Not Set'}">
+          Blood Type: O+
+        </div>
+        <!-- Verification Status -->
+        <div th:if="${user.isVerified}" class="verified-badge">
+          <i class="fas fa-check-circle me-1"></i> Verified Donor - You can register for camps
+        </div>
+        <div th:unless="${user.isVerified}" class="verification-pending">
+          <i class="fas fa-clock me-1"></i> Verification Pending - Complete verification to register
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Overview -->
+  <section class="dashboard-grid">
+    <div class="dashboard-card">
+      <div class="card-header">
+        <div class="card-icon camps">🏕️</div>
+        <div class="card-title">Available Camps</div>
+      </div>
+      <div class="stat-large" th:text="${availableCamps != null ? availableCamps.size() : 0}">0</div>
+      <div class="stat-label">Camps you can register for</div>
+    </div>
+
+    <div class="dashboard-card">
+      <div class="card-header">
+        <div class="card-icon registrations">📋</div>
+        <div class="card-title">My Registrations</div>
+      </div>
+      <div class="stat-large" th:text="${myRegistrations != null ? myRegistrations.size() : 0}">0</div>
+      <div class="stat-label">Camps you're registered for</div>
+    </div>
+
+    <div class="dashboard-card">
+      <div class="card-header">
+        <div class="card-icon availability">✅</div>
+        <div class="card-title">Registration Status</div>
+      </div>
+      <div th:if="${user.isVerified}" class="stat-large" style="color: #10b981;">Active</div>
+      <div th:unless="${user.isVerified}" class="stat-large" style="color: #f59e0b;">Pending</div>
+      <div class="stat-label" th:text="${user.isVerified ? 'Ready to register' : 'Awaiting verification'}">
+        Status
+      </div>
+    </div>
+  </section>
+
+  <!-- Flash Messages -->
+  <div th:if="${success}" class="alert alert-success">
+    <i class="fas fa-check-circle"></i>
+    <span th:text="${success}"></span>
+  </div>
+  <div th:if="${error}" class="alert alert-danger">
+    <i class="fas fa-exclamation-circle"></i>
+    <span th:text="${error}"></span>
+  </div>
+
+  <!-- Available Camps Section -->
+  <section class="welcome-section">
+    <div class="section-header">
+      <h2 class="section-title">Available Blood Donation Camps</h2>
+    </div>
+
+    <div th:if="${availableCamps != null and not availableCamps.isEmpty()}">
+      <div th:each="camp : ${availableCamps}">
+        <!-- Fixed the th:classappend issue by combining conditions -->
+        <div class="camp-card"
+             th:classappend="${camp.currentDonors >= camp.maxDonors} ? 'full' : 'available'">
+          <div class="camp-header">
+            <div class="flex-grow-1">
+              <h3 class="camp-title" th:text="${camp.campName}">Community Blood Drive</h3>
+              <p class="camp-description" th:text="${camp.description}">
+                Join us for our monthly community blood donation drive. Your donation can save up to 3 lives!
+              </p>
+            </div>
+            <div class="camp-badges">
+                            <span th:if="${camp.currentDonors >= camp.maxDonors}" class="badge badge-danger">
+                                <i class="fas fa-user-slash me-1"></i> Full
+                            </span>
+              <span th:if="${camp.currentDonors < camp.maxDonors and camp.currentDonors >= camp.maxDonors * 0.8}"
+                    class="badge badge-warning">
+                                <i class="fas fa-exclamation-triangle me-1"></i> Almost Full
+                            </span>
+              <span th:if="${camp.currentDonors < camp.maxDonors * 0.5}"
+                    class="badge badge-success">
+                                <i class="fas fa-user-plus me-1"></i> Available
+                            </span>
+              <span class="badge badge-info">
+                                <i class="fas fa-calendar me-1"></i>
+                                <span th:text="${#temporals.format(camp.campDate, 'MMM dd')}">Jan 15</span>
+                            </span>
+            </div>
+          </div>
+
+          <div class="camp-details">
+            <div class="detail-item">
+              <div class="detail-icon">
+                <i class="fas fa-map-marker-alt"></i>
+              </div>
+              <div class="detail-text">
+                <div class="detail-label">Location</div>
+                <div class="detail-value" th:text="${camp.location}">Community Center</div>
+              </div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-icon">
+                <i class="fas fa-calendar-day"></i>
+              </div>
+              <div class="detail-text">
+                <div class="detail-label">Date</div>
+                <div class="detail-value" th:text="${#temporals.format(camp.campDate, 'EEEE, MMMM dd, yyyy')}">Monday, January 15, 2024</div>
+              </div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-icon">
+                <i class="fas fa-clock"></i>
+              </div>
+              <div class="detail-text">
+                <div class="detail-label">Time</div>
+                <div class="detail-value" th:text="${camp.startTime + ' - ' + camp.endTime}">09:00 - 16:00</div>
+              </div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-icon">
+                <i class="fas fa-user-friends"></i>
+              </div>
+              <div class="detail-text">
+                <div class="detail-label">Organizer</div>
+                <div class="detail-value" th:text="${camp.organizedBy.firstName + ' ' + camp.organizedBy.lastName}">John Smith</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="progress-container">
+            <div class="progress-header">
+              <span class="progress-label">Registration Progress</span>
+              <span class="progress-percentage"
+                    th:text="${(camp.currentDonors / camp.maxDonors * 100)} + '%'">60%</span>
+            </div>
+            <div class="progress-bar">
+              <!-- Fixed: Combined multiple th:classappend into one -->
+              <div class="progress-fill"
+                   th:classappend="${(camp.currentDonors / camp.maxDonors) >= 0.8 ? 'warning' : ''} + ' ' + ${camp.currentDonors >= camp.maxDonors ? 'danger' : ''}"
+                   th:style="'width: ' + ${(camp.currentDonors / camp.maxDonors) * 100} + '%;'">
+              </div>
+            </div>
+            <div class="progress-header mt-1">
+                            <span class="progress-label" th:text="${camp.currentDonors + ' / ' + camp.maxDonors + ' donors registered'}">
+                                30 / 50 donors registered
+                            </span>
+              <span class="progress-label" th:text="${camp.maxDonors - camp.currentDonors + ' spots available'}">
+                                20 spots available
+                            </span>
+            </div>
+          </div>
+
+          <div class="camp-actions">
+            <form th:action="@{/donor/camps/register/{id}(id=${camp.id})}" method="post">
+              <button type="submit" class="btn btn-success"
+                      th:disabled="${camp.currentDonors >= camp.maxDonors or not user.isVerified}">
+                <i class="fas fa-calendar-plus me-1"></i>
+                <span th:if="${camp.currentDonors >= camp.maxDonors}">Camp Full</span>
+                <span th:if="${camp.currentDonors < camp.maxDonors and not user.isVerified}">Verify to Register</span>
+                <span th:if="${camp.currentDonors < camp.maxDonors and user.isVerified}">Register for Camp</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div th:if="${availableCamps == null or availableCamps.isEmpty()}" class="empty-state">
+      <div class="empty-icon">
+        <i class="fas fa-campground"></i>
+      </div>
+      <h3 class="empty-title">No Available Camps</h3>
+      <p class="empty-description">
+        There are currently no blood donation camps available for registration.<br>
+        Please check back later or contact your local blood donation center.
+      </p>
+      <a href="/dashboard" class="btn btn-primary">
+        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+      </a>
+    </div>
+  </section>
+
+  <!-- My Registrations Section -->
+  <section class="welcome-section" th:if="${myRegistrations != null and not myRegistrations.isEmpty()}">
+    <div class="section-header">
+      <h2 class="section-title">My Camp Registrations</h2>
+    </div>
+
+    <div th:each="registration : ${myRegistrations}">
+      <div class="camp-card">
+        <div class="camp-header">
+          <div class="flex-grow-1">
+            <h3 class="camp-title" th:text="${registration.camp.campName}">Community Blood Drive</h3>
+            <p class="camp-description" th:text="${registration.camp.description}">
+              Join us for our monthly community blood donation drive.
+            </p>
+          </div>
+          <div class="camp-badges">
+                        <span class="badge badge-success">
+                            <i class="fas fa-check-circle me-1"></i> Registered
+                        </span>
+          </div>
+        </div>
+
+        <div class="camp-details">
+          <div class="detail-item">
+            <div class="detail-icon">
+              <i class="fas fa-map-marker-alt"></i>
+            </div>
+            <div class="detail-text">
+              <div class="detail-label">Location</div>
+              <div class="detail-value" th:text="${registration.camp.location}">Community Center</div>
+            </div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-icon">
+              <i class="fas fa-calendar-day"></i>
+            </div>
+            <div class="detail-text">
+              <div class="detail-label">Date</div>
+              <div class="detail-value" th:text="${#temporals.format(registration.camp.campDate, 'EEEE, MMMM dd, yyyy')}">Monday, January 15, 2024</div>
+            </div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-icon">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="detail-text">
+              <div class="detail-label">Time</div>
+              <div class="detail-value" th:text="${registration.camp.startTime + ' - ' + registration.camp.endTime}">09:00 - 16:00</div>
+            </div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-icon">
+              <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="detail-text">
+              <div class="detail-label">Registered On</div>
+              <div class="detail-value" th:text="${#temporals.format(registration.registeredAt, 'MMM dd, yyyy HH:mm')}">Jan 10, 2024 14:30</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="camp-actions">
+          <form th:action="@{/donor/camps/cancel/{id}(id=${registration.camp.id})}" method="post">
+            <button type="submit" class="btn btn-danger"
+                    onclick="return confirm('Are you sure you want to cancel your registration for this camp?')">
+              <i class="fas fa-times me-1"></i> Cancel Registration
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // Counter animation for stats
+  document.addEventListener('DOMContentLoaded', function() {
+    const counters = document.querySelectorAll('.stat-large');
+    counters.forEach(counter => {
+      const target = parseInt(counter.textContent) || 0;
+      let current = 0;
+      const increment = target / 30;
+
+      if (increment > 0) {
+        const timer = setInterval(() => {
+          current += increment;
+          if (current >= target) {
+            current = target;
+            clearInterval(timer);
+          }
+          counter.textContent = Math.floor(current);
+        }, 50);
+      }
+    });
+
+    // Add smooth transitions for card hovers
+    const cards = document.querySelectorAll('.dashboard-card, .camp-card');
+    cards.forEach(card => {
+      card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-5px)';
+      });
+      card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+      });
+    });
+
+    // Auto-hide alerts after 5 seconds
+    setTimeout(() => {
+      const alerts = document.querySelectorAll('.alert');
+      alerts.forEach(alert => {
+        alert.style.opacity = '0';
+        alert.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => {
+          alert.remove();
+        }, 500);
+      });
+    }, 5000);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Give Blood, Give Life</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #374151;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #dc2626;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-outline {
+            padding: 0.5rem 1rem;
+            border: 2px solid #dc2626;
+            color: #dc2626;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline:hover {
+            background: #dc2626;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding-top: 100px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 120px 2rem 2rem;
+        }
+
+        .registration-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            max-width: 900px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 600px;
+        }
+
+        .registration-visual {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .registration-visual::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" opacity="0.1"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>');
+            background-size: 200px;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .visual-content {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .visual-content h2 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+        }
+
+        .visual-content p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .registration-form {
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-header p {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #dc2626;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: #f9fafb;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #dc2626;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
+
+        .role-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .role-option {
+            position: relative;
+        }
+
+        .role-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .role-option label {
+            display: block;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+            font-size: 0.9rem;
+        }
+
+        .role-option input[type="radio"]:checked + label {
+            border-color: #dc2626;
+            background: #dc2626;
+            color: white;
+        }
+
+        .blood-type-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .blood-type-option {
+            position: relative;
+        }
+
+        .blood-type-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .blood-type-option label {
+            display: block;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+
+        .blood-type-option input[type="radio"]:checked + label {
+            border-color: #dc2626;
+            background: #dc2626;
+            color: white;
+        }
+
+        .blood-type-section {
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        .blood-type-section.show {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3);
+            margin-top: 1rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(220, 38, 38, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 1rem;
+            color: #6b7280;
+        }
+
+        .login-link a {
+            color: #dc2626;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #fecaca;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .success-message {
+            background: #f0fdf4;
+            color: #166534;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #bbf7d0;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .registration-container {
+                grid-template-columns: 1fr;
+                margin: 1rem;
+            }
+
+            .registration-visual {
+                order: 2;
+                padding: 2rem;
+            }
+
+            .registration-form {
+                order: 1;
+                padding: 2rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .role-selector {
+                grid-template-columns: 1fr;
+            }
+
+            .blood-type-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .visual-content h2 {
+                font-size: 2rem;
+            }
+
+            .hero-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 100px 1rem 1rem;
+            }
+
+            .registration-form {
+                padding: 1.5rem;
+            }
+
+            .form-header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Form validation styles */
+        .form-input:invalid {
+            border-color: #ef4444;
+        }
+
+        .form-input:valid {
+            border-color: #10b981;
+        }
+
+        /* Loading state */
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .submit-btn.loading::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            display: inline-block;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<header class="header">
+    <nav class="nav">
+        <a href="/" class="logo">Give Blood, Give Life</a>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+        <div class="auth-buttons">
+            <a href="/login" class="btn-outline">Login</a>
+        </div>
+    </nav>
+</header>
+
+<!-- Main Content -->
+<main class="main-content">
+    <div class="registration-container">
+        <!-- Visual Side -->
+        <div class="registration-visual">
+            <div class="visual-content">
+                <h2>Join Our Mission</h2>
+                <p>Become part of a community that saves lives every day through the gift of blood donation.</p>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">12,847</div>
+                        <div class="stat-label">Active Donors</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">6,468</div>
+                        <div class="stat-label">Lives Saved</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registration Form -->
+        <div class="registration-form">
+            <div class="form-header">
+                <h1>Create Your Account</h1>
+                <p>Join thousands of heroes saving lives</p>
+            </div>
+
+            <!-- Error Message -->
+            <div th:if="${error}" class="error-message" th:text="${error}"></div>
+
+            <form th:action="@{/register}" method="post" th:object="${user}" id="registrationForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="firstName" class="form-label">First Name *</label>
+                        <input type="text" id="firstName" name="firstName" th:field="*{firstName}" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName" class="form-label">Last Name *</label>
+                        <input type="text" id="lastName" name="lastName" th:field="*{lastName}" class="form-input" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address *</label>
+                    <input type="email" id="email" name="email" th:field="*{email}" class="form-input" required>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="password" class="form-label">Password *</label>
+                        <input type="password" id="password" name="password" th:field="*{password}" class="form-input" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword" class="form-label">Confirm Password *</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" th:field="*{confirmPassword}" class="form-input" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Role *</label>
+                    <div class="role-selector">
+                        <div class="role-option">
+                            <input type="radio" id="donor" name="user_type" value="DONOR" th:field="*{user_type}" required>
+                            <label for="donor">Blood Donor</label>
+                        </div>
+                        <div class="role-option">
+                            <input type="radio" id="volunteer" name="user_type" value="VOLUNTEER" th:field="*{user_type}">
+                            <label for="volunteer">Volunteer</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group blood-type-section" id="bloodTypeSection">
+                    <label class="form-label">Blood Type * (Required for Donors)</label>
+                    <div class="blood-type-grid">
+                        <div class="blood-type-option">
+                            <input type="radio" id="aPos" name="bloodType" value="A+" th:field="*{bloodType}">
+                            <label for="aPos">A+</label>
+                        </div>
+                        <div class="blood-type-option">
+                            <input type="radio" id="aNeg" name="bloodType" value="A-" th:field="*{bloodType}">
+                            <label for="aNeg">A-</label>
+                        </div>
+                        <div class="blood-type-option">
+                            <input type="radio" id="bPos" name="bloodType" value="B+" th:field="*{bloodType}">
+                            <label for="bPos">B+</label>
+                        </div>
+                        <div class="blood-type-option">
+                            <input type="radio" id="bNeg" name="bloodType" value="B-" th:field="*{bloodType}">
+                            <label for="bNeg">B-</label>
+                        </div>
+                        <div class="blood-type-option">
+                            <input type="radio" id="abPos" name="bloodType" value="AB+" th:field="*{bloodType}">
+                            <label for="abPos">AB+</label>
+                        </div>
+                        <div class="blood-type-option">
+                            <input type="radio" id="abNeg" name="bloodType" value="AB-" th:field="*{bloodType}">
+                            <label for="abNeg">AB-</label>
+                        </div>
+                        <div class="blood-type-option">
+                            <input type="radio" id="oPos" name="bloodType" value="O+" th:field="*{bloodType}">
+                            <label for="oPos">O+</label>
+                        </div>
+                        <div class="blood-type-option">
+                            <input type="radio" id="oNeg" name="bloodType" value="O-" th:field="*{bloodType}">
+                            <label for="oNeg">O-</label>
+                        </div>
+                    </div>
+                    <div class="blood-type-note" style="margin-top: 0.5rem; font-size: 0.8rem; color: #6b7280;">
+                        Your blood type is permanent and cannot be changed after registration
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                        <input type="date" id="dateOfBirth" name="dateOfBirth" th:field="*{dateOfBirth}" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="contactNumber" class="form-label">Contact Number</label>
+                        <input type="tel" id="contactNumber" name="contactNumber" th:field="*{phone}" class="form-input" placeholder="+94 71 234 5678">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="address" class="form-label">Address</label>
+                    <input type="text" id="address" name="address" th:field="*{address}" class="form-input" placeholder="Your full address">
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    Register Account
+                </button>
+            </form>
+
+            <div class="login-link">
+                Already have an account? <a href="/login">Sign in here</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const roleRadios = document.querySelectorAll('input[name="user_type"]');
+        const bloodTypeSection = document.getElementById('bloodTypeSection');
+        const bloodTypeInputs = document.querySelectorAll('input[name="bloodType"]');
+        const form = document.getElementById('registrationForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+
+        // Show/hide blood type section based on role selection
+        function toggleBloodTypeSection() {
+            const selectedRole = document.querySelector('input[name="user_type"]:checked');
+            if (selectedRole && selectedRole.value === 'DONOR') {
+                bloodTypeSection.classList.add('show');
+                bloodTypeInputs.forEach(input => input.required = true);
+            } else {
+                bloodTypeSection.classList.remove('show');
+                bloodTypeInputs.forEach(input => {
+                    input.required = false;
+                    input.checked = false;
+                });
+            }
+        }
+
+        roleRadios.forEach(radio => {
+            radio.addEventListener('change', toggleBloodTypeSection);
+        });
+
+        // Initialize on page load
+        toggleBloodTypeSection();
+
+        // Password validation
+        function validatePasswords() {
+            if (confirmPasswordInput.value && passwordInput.value !== confirmPasswordInput.value) {
+                confirmPasswordInput.setCustomValidity('Passwords do not match');
+            } else {
+                confirmPasswordInput.setCustomValidity('');
+            }
+        }
+
+        passwordInput.addEventListener('input', validatePasswords);
+        confirmPasswordInput.addEventListener('input', validatePasswords);
+
+        // Enhanced form submission validation
+        form.addEventListener('submit', function(e) {
+            const selectedRole = document.querySelector('input[name="user_type"]:checked');
+            const selectedBloodType = document.querySelector('input[name="bloodType"]:checked');
+
+            // Validate role selection
+            if (!selectedRole) {
+                e.preventDefault();
+                alert('Please select a role (Donor or Volunteer)');
+                return false;
+            }
+
+            // Validate blood type for donors
+            if (selectedRole.value === 'DONOR' && !selectedBloodType) {
+                e.preventDefault();
+                alert('Please select your blood type. This is required for donors.');
+                return false;
+            }
+
+            // Validate passwords
+            if (passwordInput.value !== confirmPasswordInput.value) {
+                e.preventDefault();
+                alert('Passwords do not match!');
+                return false;
+            }
+
+            if (!form.checkValidity()) {
+                e.preventDefault();
+                alert('Please fill in all required fields correctly.');
+                return false;
+            }
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+            submitBtn.textContent = 'Creating Account';
+        });
+
+        // Real-time validation feedback
+        const inputs = document.querySelectorAll('.form-input');
+        inputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.checkValidity()) {
+                    this.style.borderColor = '#10b981';
+                } else {
+                    this.style.borderColor = '#ef4444';
+                }
+            });
+
+            input.addEventListener('input', function() {
+                if (this.style.borderColor === '#ef4444') {
+                    this.style.borderColor = '#e5e7eb';
+                }
+            });
+        });
+
+        // Phone number formatting
+        const phoneInput = document.getElementById('contactNumber');
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.startsWith('94')) {
+                    value = '+' + value;
+                } else if (value.startsWith('0')) {
+                    value = '+94' + value.substring(1);
+                } else if (value && !value.startsWith('+')) {
+                    value = '+94' + value;
+                }
+                e.target.value = value;
+            });
+        }
+
+        // Smooth animations for form interactions
+        document.querySelectorAll('.role-option label, .blood-type-option label').forEach(label => {
+            label.addEventListener('click', function() {
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 100);
+            });
+        });
+
+        // Debug: Log form data before submission
+        form.addEventListener('submit', function(e) {
+            const formData = new FormData(form);
+            console.log('Form submission data:');
+            for (let [key, value] of formData.entries()) {
+                console.log(key + ': ' + value);
+            }
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Account - Give Blood, Give Life</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #374151;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #dc2626;
+        }
+
+        .main-content {
+            padding-top: 100px;
+            max-width: 800px;
+            margin: 0 auto;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        .delete-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .warning-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .warning-icon {
+            font-size: 4rem;
+            color: #dc2626;
+            margin-bottom: 1rem;
+        }
+
+        .warning-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #dc2626;
+            margin-bottom: 0.5rem;
+        }
+
+        .warning-subtitle {
+            color: #6b7280;
+            font-size: 1.1rem;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            border: 2px solid #dc2626;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .warning-list {
+            list-style: none;
+            margin: 1rem 0;
+        }
+
+        .warning-list li {
+            margin: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .warning-list li::before {
+            content: "⚠️";
+            font-size: 1.2rem;
+        }
+
+        .form-section {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #dc2626;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            margin-top: 0.25rem;
+            width: 18px;
+            height: 18px;
+        }
+
+        .checkbox-label {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.3);
+        }
+
+        .btn-danger:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(107, 114, 128, 0.3);
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #dc2626;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border: 1px solid #3b82f6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .info-box h4 {
+            color: #1e40af;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box p {
+            color: #1e40af;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<header class="header">
+    <nav class="nav">
+        <div class="logo">Give Blood, Give Life</div>
+        <ul class="nav-links">
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/donor/history">History</a></li>
+            <li><a href="/donor/profile">Profile</a></li>
+            <li><a href="#appointments">Appointments</a></li>
+        </ul>
+        <div>
+            <a href="/logout" class="btn btn-secondary">Logout</a>
+        </div>
+    </nav>
+</header>
+
+<main class="main-content">
+    <div class="delete-section">
+        <div class="warning-header">
+            <div class="warning-icon">⚠️</div>
+            <h1 class="warning-title">Delete Your Account</h1>
+            <p class="warning-subtitle">This action cannot be undone</p>
+        </div>
+
+        <!-- Error Messages -->
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+        <div class="warning-box">
+            <h3 style="color: #dc2626; margin-bottom: 1rem;">Before you proceed, please understand:</h3>
+            <ul class="warning-list">
+                <li>Your account and all personal information will be permanently deleted</li>
+                <li>Your donation history will be removed from the system</li>
+                <li>You will no longer receive notifications about blood drives</li>
+                <li>This action cannot be reversed or undone</li>
+                <li>You will need to create a new account if you wish to donate again</li>
+            </ul>
+        </div>
+
+        <div class="info-box">
+            <h4>Consider These Alternatives:</h4>
+            <p>Instead of deleting your account, you might want to:</p>
+            <ul style="margin-top: 0.5rem; padding-left: 1rem;">
+                <li>Temporarily pause donation reminders</li>
+                <li>Update your contact preferences</li>
+                <li>Speak with our support team about your concerns</li>
+            </ul>
+        </div>
+
+        <form method="post" action="/donor/delete-account/confirm" id="deleteAccountForm">
+            <div class="form-section">
+                <h3 style="margin-bottom: 1rem;">Account Deletion Details</h3>
+
+                <div class="form-group">
+                    <label for="reason" class="form-label">Why are you leaving? (Optional)</label>
+                    <textarea id="reason" name="reason" class="form-input form-textarea"
+                              placeholder="Help us improve by letting us know why you're deleting your account..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword" class="form-label">Confirm your password *</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword"
+                           class="form-input" required placeholder="Enter your password to confirm">
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="confirmDeletion" required>
+                    <label for="confirmDeletion" class="checkbox-label">
+                        I understand that this action is permanent and cannot be undone.
+                        I want to permanently delete my donor account.
+                    </label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="confirmHistory" required>
+                    <label for="confirmHistory" class="checkbox-label">
+                        I understand that my donation history will be permanently removed
+                        and cannot be recovered.
+                    </label>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn btn-danger" id="deleteButton" disabled>
+                    🗑️ Delete My Account Forever
+                </button>
+                <a href="/donor/profile" class="btn btn-secondary">
+                    ← Cancel & Keep Account
+                </a>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteButton = document.getElementById('deleteButton');
+        const confirmDeletion = document.getElementById('confirmDeletion');
+        const confirmHistory = document.getElementById('confirmHistory');
+        const passwordField = document.getElementById('confirmPassword');
+        const form = document.getElementById('deleteAccountForm');
+
+        function updateDeleteButton() {
+            const allChecked = confirmDeletion.checked && confirmHistory.checked;
+            const passwordEntered = passwordField.value.trim().length > 0;
+
+            deleteButton.disabled = !(allChecked && passwordEntered);
+
+            if (allChecked && passwordEntered) {
+                deleteButton.style.opacity = '1';
+                deleteButton.style.cursor = 'pointer';
+            } else {
+                deleteButton.style.opacity = '0.5';
+                deleteButton.style.cursor = 'not-allowed';
+            }
+        }
+
+        confirmDeletion.addEventListener('change', updateDeleteButton);
+        confirmHistory.addEventListener('change', updateDeleteButton);
+        passwordField.addEventListener('input', updateDeleteButton);
+
+        // Add extra confirmation dialog
+        form.addEventListener('submit', function(e) {
+            const confirmed = confirm(
+                'FINAL CONFIRMATION: Are you absolutely sure you want to delete your account? ' +
+                'This action is permanent and cannot be undone. Click OK to proceed with deletion.'
+            );
+
+            if (!confirmed) {
+                e.preventDefault();
+                return false;
+            }
+
+            // Change button text to show it's processing
+            deleteButton.innerHTML = '⏳ Deleting Account...';
+            deleteButton.disabled = true;
+        });
+
+        // Character counter for reason textarea
+        const reasonField = document.getElementById('reason');
+        const charCounter = document.createElement('div');
+        charCounter.style.cssText = 'text-align: right; font-size: 0.8rem; color: #6b7280; margin-top: 0.5rem;';
+        charCounter.textContent = '0/500 characters';
+        reasonField.parentNode.appendChild(charCounter);
+
+        reasonField.addEventListener('input', function() {
+            const length = this.value.length;
+            charCounter.textContent = `${length}/500 characters`;
+
+            if (length > 500) {
+                this.value = this.value.substring(0, 500);
+                charCounter.textContent = '500/500 characters (maximum reached)';
+                charCounter.style.color = '#dc2626';
+            } else {
+                charCounter.style.color = '#6b7280';
+            }
+        });
+    });
+</script>
+</body>
+</html>

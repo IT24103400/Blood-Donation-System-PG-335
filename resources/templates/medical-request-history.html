@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Request History - Medical Staff - Give Blood, Give Life</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0ea5e9, #0369a1);
+            color: white;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+        }
+
+        .history-table {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(14, 165, 233, 0.1);
+            border-left: 4px solid #0ea5e9;
+            padding: 2rem;
+            margin: 2rem auto;
+        }
+
+        .badge-pending { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .badge-approved { background: linear-gradient(135deg, #10b981, #059669); }
+        .badge-rejected { background: linear-gradient(135deg, #dc2626, #991b1b); }
+        .badge-fulfilled { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .badge-cancelled { background: linear-gradient(135deg, #6b7280, #4b5563); }
+
+        .urgency-critical { border-left: 4px solid #dc2626 !important; }
+        .urgency-high { border-left: 4px solid #f59e0b !important; }
+        .urgency-medium { border-left: 4px solid #3b82f6 !important; }
+        .urgency-low { border-left: 4px solid #10b981 !important; }
+
+        .btn-view {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-view:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            transform: translateY(-1px);
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(14, 165, 233, 0.1);
+            padding: 20px;
+            margin: 10px;
+            border-left: 4px solid #0ea5e9;
+            transition: transform 0.3s ease;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(14, 165, 233, 0.2);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #0ea5e9, #0369a1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body>
+<header class="header text-center">
+    <h1 class="mb-2"><i class="fas fa-history me-2"></i>Give Blood, Give Life - Request History</h1>
+    <nav class="d-flex justify-content-center gap-3">
+        <a href="/medical-staff/dashboard" class="nav-link text-white">Dashboard</a>
+        <a href="/medical-staff/request-history" class="nav-link text-white">My History</a>
+
+        <a href="/medical-staff/feedback" class="nav-link text-white">My Feedback</a>
+        <a href="/logout" class="nav-link text-white" onclick="return confirmLogout();">Logout</a>
+    </nav>
+</header>
+
+<div class="container mt-4">
+    <!-- Flash Messages -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="history-table">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3><i class="fas fa-list me-2"></i>My Request History</h3>
+            <a href="/medical-staff/dashboard" class="btn btn-primary">
+                <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Statistics Cards Section -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <div class="stat-number" th:text="${totalCount}">0</div>
+                    <div class="text-muted fw-semibold"><i class="fas fa-file-medical text-info me-1"></i> Total Processed</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <div class="stat-number" th:text="${approvedCount}">0</div>
+                    <div class="text-muted fw-semibold"><i class="fas fa-check-circle text-success me-1"></i> Approved</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <div class="stat-number" th:text="${rejectedCount}">0</div>
+                    <div class="text-muted fw-semibold"><i class="fas fa-times-circle text-danger me-1"></i> Rejected</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <div class="stat-number" th:text="${fulfilledCount + cancelledCount}">0</div>
+                    <div class="text-muted fw-semibold"><i class="fas fa-archive text-secondary me-1"></i> Other</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-primary">
+                <tr>
+                    <th>Request ID</th>
+                    <th>Blood Type</th>
+                    <th>Quantity</th>
+                    <th>Urgency</th>
+                    <th>Hospital</th>
+                    <th>Status</th>
+                    <th>Request Date</th>
+                    <th>Response Date</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="request : ${bloodRequests}" th:classappend="${'urgency-' + request.urgency.toLowerCase()}">
+                    <td th:text="${request.id}"></td>
+                    <td th:text="${request.bloodType}" class="fw-bold"></td>
+                    <td th:text="${request.quantity}"></td>
+                    <td>
+              <span th:text="${request.urgency}" class="badge"
+                    th:class="${request.urgency == 'CRITICAL'} ? 'bg-danger' :
+                              (${request.urgency == 'HIGH'} ? 'bg-warning' :
+                              (${request.urgency == 'MEDIUM'} ? 'bg-info' : 'bg-success'))">
+              </span>
+                    </td>
+                    <td th:text="${request.hospitalName}"></td>
+                    <td>
+              <span th:switch="${request.status}" class="badge text-white">
+                <span th:case="'PENDING'" class="badge-pending">Pending</span>
+                <span th:case="'APPROVED'" class="badge-approved">Approved</span>
+                <span th:case="'REJECTED'" class="badge-rejected">Rejected</span>
+                <span th:case="'FULFILLED'" class="badge-fulfilled">Fulfilled</span>
+                <span th:case="'CANCELLED'" class="badge-cancelled">Cancelled</span>
+              </span>
+                    </td>
+                    <td th:text="${#temporals.format(request.requestDate, 'yyyy-MM-dd HH:mm')}"></td>
+                    <td th:text="${request.responseDate != null ? #temporals.format(request.responseDate, 'yyyy-MM-dd HH:mm') : 'N/A'}"></td>
+                    <td>
+                        <a th:href="@{/medical-staff/request-details/{id}(id=${request.id})}" class="btn btn-view">
+                            <i class="fas fa-eye me-1"></i> View
+                        </a>
+                    </td>
+                </tr>
+                <tr th:if="${bloodRequests == null or bloodRequests.isEmpty()}">
+                    <td colspan="9" class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fs-1 mb-2 d-block text-muted"></i>
+                        No requests processed yet
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function confirmLogout() {
+        return confirm("Are you sure you want to logout?");
+    }
+
+    // Auto-hide alerts
+    setTimeout(() => {
+        document.querySelectorAll('.alert').forEach(alert => {
+            bootstrap.Alert.getOrCreateInstance(alert).close();
+        });
+    }, 5000);
+
+    // Counter animations
+    document.addEventListener('DOMContentLoaded', function() {
+        const counters = document.querySelectorAll('.stat-number');
+        counters.forEach(counter => {
+            const target = parseInt(counter.textContent) || 0;
+            let current = 0;
+            const increment = target / 30;
+
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                counter.textContent = Math.floor(current);
+            }, 50);
+        });
+    });
+</script>
+</body>
+</html>

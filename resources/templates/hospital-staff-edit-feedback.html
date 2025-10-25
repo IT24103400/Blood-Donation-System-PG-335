@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Feedback - Hospital Staff - Give Blood, Give Life</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      min-height: 100vh;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      color: white;
+      padding: 15px;
+      box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3);
+    }
+
+    .edit-container {
+      padding: 2rem 0;
+    }
+
+    .edit-card {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      border-left: 4px solid #f59e0b;
+    }
+
+    .character-count {
+      font-size: 0.9rem;
+      color: #6b7280;
+    }
+
+    .character-count.limit-exceeded {
+      color: #dc2626;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+<!-- Header -->
+<header class="header text-center">
+  <h1 class="mb-2"><i class="fas fa-hospital me-2"></i>Give Blood, Give Life - Edit Feedback</h1>
+  <nav class="d-flex justify-content-center gap-3">
+    <a href="/hospital-staff/dashboard" class="nav-link text-white">Dashboard</a>
+    <a href="/hospital-staff/request-history" class="nav-link text-white">Request History</a>
+    <a href="/hospital-staff/new-request" class="nav-link text-white">New Request</a>
+    <a href="/hospital-staff/feedback" class="nav-link text-white">My Feedback</a>
+    <a href="/logout" class="nav-link text-white" onclick="return confirm('Are you sure you want to logout?');">Logout</a>
+  </nav>
+</header>
+
+<div class="edit-container">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="edit-card">
+          <h3 class="mb-4"><i class="fas fa-edit me-2"></i>Edit Your Feedback</h3>
+
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            You can only edit feedback that is still pending review. Once approved or rejected, feedback cannot be modified.
+          </div>
+
+          <form th:action="@{/hospital-staff/feedback/edit/{id}(id=${feedbackDTO.feedbackId})}" method="post" th:object="${feedbackDTO}">
+            <div class="mb-3">
+              <label for="content" class="form-label">Your Feedback *</label>
+              <textarea class="form-control" id="content" th:field="*{content}" rows="6"
+                        placeholder="Share your experience, suggestions, or thoughts about our blood donation platform..."
+                        required maxlength="1000"></textarea>
+              <div class="character-count mt-1">
+                <span id="charCount">0</span>/1000 characters
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-warning">
+                <i class="fas fa-save me-2"></i>Update Feedback
+              </button>
+              <a th:href="@{/hospital-staff/feedback}" class="btn btn-outline-secondary">
+                <i class="fas fa-times me-2"></i>Cancel
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.getElementById('content');
+    const charCount = document.getElementById('charCount');
+    const charCountElement = document.querySelector('.character-count');
+
+    // Set initial character count
+    charCount.textContent = textarea.value.length;
+    updateCharCountStyle(textarea.value.length);
+
+    textarea.addEventListener('input', function() {
+      const length = this.value.length;
+      charCount.textContent = length;
+      updateCharCountStyle(length);
+    });
+
+    function updateCharCountStyle(length) {
+      if (length > 1000) {
+        charCountElement.classList.add('limit-exceeded');
+      } else {
+        charCountElement.classList.remove('limit-exceeded');
+      }
+    }
+
+    // Form validation
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+      const content = textarea.value.trim();
+      if (content.length === 0) {
+        e.preventDefault();
+        alert('Please enter your feedback before submitting.');
+        textarea.focus();
+        return false;
+      }
+
+      if (content.length > 1000) {
+        e.preventDefault();
+        alert('Feedback exceeds the maximum character limit of 1000. Please shorten your message.');
+        textarea.focus();
+        return false;
+      }
+    });
+  });
+</script>
+</body>
+</html>

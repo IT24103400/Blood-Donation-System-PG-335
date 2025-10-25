@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Medical Staff Dashboard - Give Blood, Give Life</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #0ea5e9, #0369a1);
+      color: white;
+      padding: 15px;
+      box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+    }
+
+    .profile {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(14, 165, 233, 0.1);
+      border-left: 4px solid #0ea5e9;
+    }
+
+    .stats-card {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(14, 165, 233, 0.1);
+      padding: 20px;
+      margin: 10px;
+      border-left: 4px solid #0ea5e9;
+      transition: transform 0.3s ease;
+    }
+
+    .stats-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(14, 165, 233, 0.2);
+    }
+
+    .btn-medical {
+      background: linear-gradient(135deg, #0ea5e9, #0369a1);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-medical:hover {
+      background: linear-gradient(135deg, #0369a1, #0c4a6e);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(14, 165, 233, 0.4);
+    }
+
+    .inventory-table, .requests-table {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(14, 165, 233, 0.1);
+      border-left: 4px solid #0ea5e9;
+    }
+
+    .badge-critical {
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-low {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-normal {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-good {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-pending {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-approved {
+      background: linear-gradient(135grad, #10b981, #059669);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-rejected {
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-cancelled {
+      background: linear-gradient(135deg, #6b7280, #4b5563);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-expired {
+      background: linear-gradient(135deg, #6b7280, #4b5563);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #0ea5e9, #0369a1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .urgency-critical { border-left: 4px solid #dc2626 !important; }
+    .urgency-high { border-left: 4px solid #f59e0b !important; }
+    .urgency-medium { border-left: 4px solid #3b82f6 !important; }
+    .urgency-low { border-left: 4px solid #10b981 !important; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-fade { animation: fadeIn 0.8s ease-in; }
+
+    .password-modal {
+      background: rgba(0,0,0,0.5);
+    }
+
+    .btn-view {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.875rem;
+      margin-right: 0.5rem;
+    }
+
+    .btn-view:hover {
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
+      transform: translateY(-1px);
+    }
+
+    .notification-item {
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      background: #f8f9fa;
+      border-left: 4px solid #0ea5e9;
+      transition: all 0.3s ease;
+    }
+
+    .notification-item:hover {
+      transform: translateX(5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .notification-critical {
+      border-left-color: #dc2626;
+      background: #fef2f2;
+    }
+
+    .notification-warning {
+      border-left-color: #f59e0b;
+      background: #fffbeb;
+    }
+
+    .notification-success {
+      border-left-color: #10b981;
+      background: #f0fdf4;
+    }
+
+    .notification-secondary {
+      border-left-color: #6b7280 !important;
+      background: #f8f9fa !important;
+    }
+
+    .expired-row {
+      background-color: #fff5f5 !important;
+      border-left: 4px solid #dc2626 !important;
+      animation: pulse-expired 2s infinite;
+    }
+
+    .expired-row td:not(:last-child) {
+      color: #dc2626 !important;
+      text-decoration: line-through;
+    }
+
+    .expired-row td:last-child {
+      color: #dc2626 !important;
+      text-decoration: none;
+    }
+
+    .expired-badge {
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .blood-total-card {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(14, 165, 233, 0.1);
+      padding: 20px;
+      margin: 10px;
+      border-left: 4px solid #0ea5e9;
+      transition: transform 0.3s ease;
+      position: relative;
+    }
+
+    .blood-total-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(14, 165, 233, 0.2);
+    }
+
+    .blood-type-header {
+      font-weight: 700;
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .blood-total-number {
+      font-size: 2rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #0ea5e9, #0369a1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .batch-number {
+      font-size: 0.8rem;
+      color: #6b7280;
+      font-family: monospace;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-sm {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    @keyframes pulse-expired {
+      0% { background-color: #fff5f5; }
+      50% { background-color: #ffe4e6; }
+      100% { background-color: #fff5f5; }
+    }
+
+    .highlight-expired {
+      animation: highlight-pulse 2s ease-in-out;
+    }
+
+    @keyframes highlight-pulse {
+      0% { background-color: #fff5f5; }
+      50% { background-color: #fee2e2; }
+      100% { background-color: #fff5f5; }
+    }
+
+    /* FIFO Management Styles */
+    .fifo-card {
+      background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+      border: 2px solid #0ea5e9;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 5px 20px rgba(14, 165, 233, 0.1);
+    }
+
+    .fifo-indicator {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+
+    .next-expiry-badge {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 500;
+    }
+
+    .blood-usage-form {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(14, 165, 233, 0.1);
+      border: 2px solid #e0f2fe;
+      padding: 25px;
+      margin-bottom: 30px;
+    }
+
+    .fifo-details {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 10px;
+    }
+
+    .fifo-batch-item {
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin: 5px 0;
+      font-size: 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .fifo-batch-item.urgent {
+      background: #fef2f2;
+      border-color: #dc2626;
+      color: #dc2626;
+    }
+
+    .fifo-batch-item.warning {
+      background: #fffbeb;
+      border-color: #f59e0b;
+      color: #92400e;
+    }
+
+    .btn-use-blood {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-use-blood:hover {
+      background: linear-gradient(135deg, #059669, #047857);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+      color: white;
+    }
+
+    .btn-fulfill {
+      background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .btn-fulfill:hover {
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      transform: translateY(-1px);
+      color: white;
+    }
+
+    /* Donor Notification Styles */
+    .donor-notification-card {
+      background: linear-gradient(135deg, #fff7ed, #fed7aa);
+      border: 2px solid #f59e0b;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 5px 20px rgba(245, 158, 11, 0.1);
+    }
+
+    .notification-indicator {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+
+    .btn-notify {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-notify:hover {
+      background: linear-gradient(135deg, #d97706, #b45309);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
+      color: white;
+    }
+
+    .urgent-notification {
+      border-left: 4px solid #dc2626 !important;
+      background: linear-gradient(135deg, #fef2f2, #fed7d7) !important;
+      animation: pulse-urgent 2s infinite;
+    }
+
+    @keyframes pulse-urgent {
+      0% { background-color: #fef2f2; }
+      50% { background-color: #fed7d7; }
+      100% { background-color: #fef2f2; }
+    }
+
+    /* Notification Management Styles */
+    .notification-management-card {
+      background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+      border: 2px solid #0ea5e9;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 5px 20px rgba(14, 165, 233, 0.1);
+    }
+
+    .management-indicator {
+      background: linear-gradient(135deg, #0ea5e9, #0369a1);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+
+    .btn-outline-danger {
+      border-color: #dc2626;
+      color: #dc2626;
+    }
+
+    .btn-outline-danger:hover {
+      background-color: #dc2626;
+      color: white;
+    }
+
+    .list-group-item {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .list-group-item:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+<body>
+<header class="header text-center">
+  <h1 class="mb-2"><i class="fas fa-user-md me-2"></i>Give Blood, Give Life - Medical Staff Dashboard</h1>
+  <nav class="d-flex justify-content-center gap-3">
+    <a href="/medical-staff/dashboard" class="nav-link text-white">Dashboard</a>
+    <a href="/medical-staff/request-history" class="nav-link text-white">My History</a>
+    <a href="/medical-staff/feedback" class="nav-link text-white">My Feedback</a>
+    <a href="/logout" class="nav-link text-white" onclick="return confirmLogout();">Logout</a>
+  </nav>
+</header>
+
+<div class="container mt-4 animate-fade">
+  <!-- Flash Messages -->
+  <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>
+    <span th:text="${successMessage}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="fas fa-exclamation-circle me-2"></i>
+    <span th:text="${errorMessage}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
+  <!-- Password Change Modal (shown if temp password) -->
+  <div th:if="${requirePasswordChange}" class="modal fade show d-block password-modal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-warning">
+          <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Password Change Required</h5>
+        </div>
+        <div class="modal-body">
+          <p>For security reasons, please change your temporary password.</p>
+          <form th:action="@{/medical-staff/change-password}" method="post" th:object="${passwordChangeDTO}">
+            <div class="mb-3">
+              <label class="form-label">Current Password</label>
+              <input type="password" class="form-control" th:field="*{currentPassword}" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">New Password</label>
+              <input type="password" class="form-control" th:field="*{newPassword}" required minlength="6">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Confirm New Password</label>
+              <input type="password" class="form-control" th:field="*{confirmPassword}" required>
+            </div>
+            <button type="submit" class="btn btn-warning w-100">Change Password</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div th:if="${!requirePasswordChange}">
+    <!-- FIFO Blood Usage Section -->
+    <div class="fifo-card">
+      <div class="fifo-indicator">
+        <i class="fas fa-sort-numeric-down me-1"></i>FIFO System Active
+      </div>
+      <h5 class="mb-3 text-primary">
+        <i class="fas fa-syringe me-2"></i>Use Blood Inventory (First In, First Out)
+      </h5>
+      <form th:action="@{/medical-staff/use-blood}" method="post" class="row g-3">
+        <div class="col-md-3">
+          <label for="bloodType" class="form-label fw-semibold">Blood Type</label>
+          <select class="form-select" id="bloodType" name="bloodType" required onchange="showAvailableStock(this.value)">
+            <option value="">Select Blood Type</option>
+            <option value="O+">O+ (Universal Donor - Plasma)</option>
+            <option value="O-">O- (Universal Donor)</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="AB+">AB+ (Universal Recipient)</option>
+            <option value="AB-">AB-</option>
+          </select>
+          <div id="availableStock" class="mt-2 small text-muted"></div>
+        </div>
+        <div class="col-md-2">
+          <label for="quantity" class="form-label fw-semibold">Quantity (Units)</label>
+          <input type="number" class="form-control" id="quantity" name="quantity" min="1" required>
+        </div>
+        <div class="col-md-4">
+          <label for="reason" class="form-label fw-semibold">Usage Reason</label>
+          <input type="text" class="form-control" id="reason" name="reason"
+                 placeholder="e.g., Emergency surgery, Blood transfusion" required>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <button type="submit" class="btn btn-use-blood w-100">
+            <i class="fas fa-check-circle me-2"></i>Use Blood (FIFO)
+          </button>
+        </div>
+      </form>
+      <div class="mt-3">
+        <small class="text-muted">
+          <i class="fas fa-info-circle me-1"></i>
+          Blood closest to expiration date will be used first automatically. Empty batches are removed from inventory.
+          <span class="text-warning fw-bold">If insufficient blood is available, donors will be automatically notified.</span>
+        </small>
+      </div>
+    </div>
+
+    <!-- Donor Notification Section -->
+    <div class="donor-notification-card">
+      <div class="notification-indicator">
+        <i class="fas fa-bullhorn me-1"></i>Donor Notification System
+      </div>
+      <h5 class="mb-3 text-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>Notify Donors for Urgent Blood Need
+      </h5>
+      <form th:action="@{/medical-staff/notify-donors}" method="post" class="row g-3">
+        <div class="col-md-3">
+          <label for="notifyBloodType" class="form-label fw-semibold">Blood Type Needed</label>
+          <select class="form-select" id="notifyBloodType" name="bloodType" required>
+            <option value="">Select Blood Type</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label for="notifyQuantity" class="form-label fw-semibold">Quantity Needed</label>
+          <input type="number" class="form-control" id="notifyQuantity" name="quantity" min="1" required>
+        </div>
+        <div class="col-md-4">
+          <label for="notifyReason" class="form-label fw-semibold">Urgent Reason</label>
+          <input type="text" class="form-control" id="notifyReason" name="reason"
+                 placeholder="e.g., Emergency surgery, Critical shortage" required>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <button type="submit" class="btn btn-notify w-100 fw-bold">
+            <i class="fas fa-bullhorn me-2"></i>Notify Donors
+          </button>
+        </div>
+      </form>
+      <div class="mt-3">
+        <small class="text-warning">
+          <i class="fas fa-info-circle me-1"></i>
+          This will send an urgent notification to all donors with the specified blood type.
+          Use only for critical shortages. Donors will see these notifications on their dashboards.
+        </small>
+      </div>
+    </div>
+
+    <!-- Active Donor Notifications Management -->
+    <div class="notification-management-card">
+      <div class="management-indicator">
+        <i class="fas fa-bell-slash me-1"></i>Notification Management
+      </div>
+      <h5 class="mb-3 text-primary">
+        <i class="fas fa-trash-alt me-2"></i>Manage Active Donor Notifications
+      </h5>
+
+      <!-- Bulk Delete by Blood Type -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <label for="deleteBloodType" class="form-label fw-semibold">Delete All Notifications by Blood Type</label>
+          <select class="form-select" id="deleteBloodType">
+            <option value="">Select Blood Type</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+          </select>
+        </div>
+        <div class="col-md-6 d-flex align-items-end">
+          <button type="button" class="btn btn-danger w-100" onclick="deleteAllNotificationsByBloodType()">
+            <i class="fas fa-trash me-2"></i>Delete All Notifications
+          </button>
+        </div>
+      </div>
+
+      <!-- Active Notifications List -->
+      <div class="mt-3">
+        <h6 class="fw-bold mb-3">Active Donor Notifications</h6>
+        <div id="activeNotificationsList">
+          <div class="text-center text-muted py-3">
+            <i class="fas fa-spinner fa-spin me-2"></i>Loading active notifications...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Blood Type Totals Section with FIFO Details -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="inventory-table p-4">
+          <h5 class="mb-3">
+            <i class="fas fa-chart-pie me-2"></i>Blood Inventory Totals
+            <span class="fifo-indicator ms-2">FIFO Managed</span>
+          </h5>
+          <div class="row">
+            <div th:each="entry : ${bloodTypeTotals}" class="col-md-3 col-sm-6 mb-3">
+              <div class="blood-total-card text-center position-relative">
+                <div class="blood-type-header" th:text="${entry.key}">Blood Type</div>
+                <div class="blood-total-number" th:text="${entry.value}">0</div>
+                <div class="text-muted mb-2">Units Available</div>
+                <button class="btn btn-sm btn-outline-primary"
+                        th:data-blood-type="${entry.key}"
+                        onclick="showFIFOQueue(this.getAttribute('data-blood-type'))">
+                  <i class="fas fa-list-ol me-1"></i>View Queue
+                </button>
+                <div th:if="${entry.value < 5}" class="position-absolute top-0 end-0 mt-2 me-2">
+                  <span class="badge bg-danger">
+                    <i class="fas fa-exclamation-triangle"></i> Low
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-4">
+        <div class="profile p-4">
+          <div class="d-flex align-items-center mb-3">
+            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3"
+                 style="width: 60px; height: 60px;">
+              <i class="fas fa-user-md text-white fs-4"></i>
+            </div>
+            <div>
+              <h4 class="mb-0" th:text="${user.firstName + ' ' + user.lastName}"></h4>
+              <span class="badge bg-primary">Medical Staff</span>
+            </div>
+          </div>
+          <p class="mb-2"><i class="fas fa-envelope text-primary me-2"></i><span th:text="${user.email}"></span></p>
+          <p class="mb-0"><i class="fas fa-phone text-primary me-2"></i><span th:text="${user.phone ?: 'Not provided'}"></span></p>
+        </div>
+
+        <!-- Notifications Section -->
+        <div class="stats-card mt-3">
+          <h5 class="mb-3">
+            <i class="fas fa-bell me-2"></i>Recent Notifications
+            <button class="btn btn-sm btn-outline-primary float-end" onclick="loadActiveNotifications()">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </h5>
+          <div th:if="${notifications != null and not notifications.isEmpty()}">
+            <div th:each="notification : ${notifications}" class="notification-item position-relative"
+                 th:classappend="${notification.type == 'INVENTORY_LOW'} ? 'notification-warning' :
+                                (${notification.type == 'BLOOD_EXPIRED'} ? 'notification-critical' :
+                                (${notification.type == 'DONOR_NOTIFICATION_SENT'} ? 'notification-success' :
+                                (${notification.type == 'URGENT_BLOOD_REQUEST'} ? 'urgent-notification' :
+                                (${notification.type == 'NOTIFICATION_DELETED'} ? 'notification-secondary' :
+                                'notification-success'))))">
+
+              <!-- Delete button for donor notifications -->
+              <div th:if="${notification.type == 'URGENT_BLOOD_REQUEST' or notification.type == 'INVENTORY_LOW'}"
+                   class="position-absolute top-0 end-0 mt-2 me-2">
+                <button class="btn btn-sm btn-outline-danger"
+                        th:attr="data-notification-id=${notification.id}"
+                        onclick="deleteSingleNotification(this)">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+
+              <div class="d-flex justify-content-between">
+                <strong th:text="${notification.type == 'INVENTORY_LOW'} ? 'Low Stock' :
+                                (${notification.type == 'BLOOD_EXPIRED'} ? 'Expired Blood' :
+                                (${notification.type == 'BLOOD_USED'} ? 'Blood Used (FIFO)' :
+                                (${notification.type == 'DONOR_NOTIFICATION_SENT'} ? 'Donors Notified' :
+                                (${notification.type == 'URGENT_BLOOD_REQUEST'} ? 'Urgent Request Sent' :
+                                (${notification.type == 'NOTIFICATION_DELETED'} ? 'Notification Deleted' :
+                                'Inventory Update')))))"></strong>
+                <small th:text="${#temporals.format(notification.date, 'MMM dd, HH:mm')}"></small>
+              </div>
+              <p class="mb-0" th:text="${notification.message}"></p>
+              <small th:if="${notification.bloodType}" th:text="'Blood Type: ' + ${notification.bloodType}"></small>
+            </div>
+          </div>
+          <div th:if="${notifications == null or notifications.isEmpty()}" class="text-center text-muted py-3">
+            <i class="fas fa-bell-slash fs-1 mb-2 d-block"></i>
+            No new notifications
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-8">
+        <div class="row">
+          <div class="col-md-4">
+            <div class="stats-card text-center">
+              <div class="stat-number" th:text="${pendingCount}">0</div>
+              <div class="text-muted fw-semibold"><i class="fas fa-clock text-warning me-1"></i> Pending Requests</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stats-card text-center">
+              <div class="stat-number" th:text="${bloodInventory != null ? bloodInventory.size() : 0}">0</div>
+              <div class="text-muted fw-semibold"><i class="fas fa-tint text-danger me-1"></i> Blood Batches</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stats-card text-center">
+              <div class="stat-number" th:text="${criticalStockCount}">0</div>
+              <div class="text-muted fw-semibold"><i class="fas fa-exclamation-triangle text-danger me-1"></i> Critical Stock</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-card mt-3">
+          <h5 class="mb-3"><i class="fas fa-tachometer-alt me-2"></i>Quick Actions</h5>
+          <div class="d-grid gap-2 d-md-flex">
+            <button class="btn btn-medical me-md-2" data-bs-toggle="modal" data-bs-target="#addInventoryModal">
+              <i class="fas fa-plus-circle me-1"></i> Add Blood
+            </button>
+            <a href="/medical-staff/request-history" class="btn btn-outline-primary me-md-2">
+              <i class="fas fa-history me-1"></i> View My History
+            </a>
+            <a href="#pending-requests" class="btn btn-outline-primary">
+              <i class="fas fa-list me-1"></i> View Pending Requests
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Blood Inventory Table -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="inventory-table p-4">
+          <h5 class="mb-3">
+            <i class="fas fa-tint me-2"></i>Blood Inventory Details
+            <span class="fifo-indicator ms-2">FIFO Order</span>
+          </h5>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead class="table-primary">
+              <tr>
+                <th>Blood Type</th>
+                <th>Batch Number</th>
+                <th>Quantity (Units)</th>
+                <th>Threshold</th>
+                <th>Status</th>
+                <th>Donation Date</th>
+                <th>Expiration Date</th>
+                <th>Days to Expire</th>
+                <th>Actions</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="inventory : ${bloodInventory}"
+                  th:classappend="${inventory.isExpired} ? 'expired-row' : ''"
+                  th:attr="data-inventory-id=${inventory.id}">
+                <td th:text="${inventory.bloodType}" class="fw-bold"></td>
+                <td>
+                  <span th:text="${inventory.batchNumber}" class="batch-number"></span>
+                  <span th:if="${inventory.isExpired}" class="expired-badge ms-2">EXPIRED</span>
+                </td>
+                <td>
+                  <strong th:text="${inventory.quantity}"></strong>
+                  <div class="small text-muted">
+                    <span th:if="${inventory.expirationDate != null}"
+                          th:with="daysToExpire=${T(java.time.temporal.ChronoUnit).DAYS.between(T(java.time.LocalDate).now(), inventory.expirationDate)}"
+                          th:classappend="${daysToExpire <= 7 and daysToExpire >= 0} ? 'text-warning' : (${daysToExpire < 0} ? 'text-danger' : '')">
+                      <span th:if="${daysToExpire >= 0}" th:text="'Next in FIFO queue'"></span>
+                      <span th:if="${daysToExpire < 0}" th:text="'Expired - remove first'"></span>
+                    </span>
+                  </div>
+                </td>
+                <td th:text="${inventory.threshold}"></td>
+                <td>
+                  <span th:switch="${inventory.status}" class="badge text-white">
+                    <span th:case="'CRITICAL'" class="badge-critical">Critical</span>
+                    <span th:case="'LOW'" class="badge-low">Low</span>
+                    <span th:case="'NORMAL'" class="badge-normal">Normal</span>
+                    <span th:case="'GOOD'" class="badge-good">Good</span>
+                    <span th:case="'EXPIRED'" class="badge-expired">Expired</span>
+                  </span>
+                </td>
+                <td th:text="${inventory.donationDate} ? ${#temporals.format(inventory.donationDate, 'yyyy-MM-dd')} : 'N/A'"></td>
+                <td>
+                  <span th:text="${inventory.expirationDate} ? ${#temporals.format(inventory.expirationDate, 'yyyy-MM-dd')} : 'N/A'"></span>
+                </td>
+                <td>
+                  <span th:if="${inventory.expirationDate != null}"
+                        th:with="daysToExpire=${T(java.time.temporal.ChronoUnit).DAYS.between(T(java.time.LocalDate).now(), inventory.expirationDate)}"
+                        th:classappend="${daysToExpire <= 7 and daysToExpire >= 0} ? 'next-expiry-badge' : (${daysToExpire < 0} ? 'badge bg-danger' : 'badge bg-success')"
+                        th:text="${daysToExpire < 0} ? 'Expired' : (${daysToExpire == 0} ? 'Today' : ${daysToExpire} + ' days')">
+                  </span>
+                  <span th:if="${inventory.expirationDate == null}" class="text-muted">N/A</span>
+                </td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="btn btn-sm btn-outline-primary"
+                            data-bs-toggle="modal"
+                            data-bs-target="#updateInventoryModal"
+                            th:attr="data-inventory-id=${inventory.id},
+                                     data-current-quantity=${inventory.quantity},
+                                     data-current-threshold=${inventory.threshold}">
+                      <i class="fas fa-edit"></i> Update
+                    </button>
+                    <button class="btn btn-sm btn-danger" th:if="${inventory.isExpired}"
+                            th:attr="data-inventory-id=${inventory.id}" onclick="deleteExpiredBloodFromButton(this)">
+                      <i class="fas fa-trash"></i> Delete
+                    </button>
+                    <button class="btn btn-sm btn-warning" th:if="${inventory.isExpired}"
+                            th:attr="data-inventory-id=${inventory.id}" onclick="clearExpiredHighlight(this)">
+                      <i class="fas fa-check"></i> Clear Status
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending Blood Requests with Fulfill Option -->
+    <div class="row mt-4" id="pending-requests">
+      <div class="col-12">
+        <div class="requests-table p-4">
+          <h5 class="mb-3">
+            <i class="fas fa-clock me-2"></i>Pending Blood Requests
+            <span class="fifo-indicator ms-2">FIFO Fulfillment</span>
+          </h5>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead class="table-warning">
+              <tr>
+                <th>Request ID</th>
+                <th>Blood Type</th>
+                <th>Quantity</th>
+                <th>Urgency</th>
+                <th>Hospital</th>
+                <th>Request Date</th>
+                <th>Actions</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="request : ${pendingRequests}" th:classappend="${'urgency-' + request.urgency.toLowerCase()}">
+                <td th:text="${request.id}"></td>
+                <td th:text="${request.bloodType}" class="fw-bold"></td>
+                <td th:text="${request.quantity}"></td>
+                <td>
+                  <span th:text="${request.urgency}" class="badge"
+                        th:class="${request.urgency == 'CRITICAL'} ? 'bg-danger' :
+                                   (${request.urgency == 'HIGH'} ? 'bg-warning' :
+                                   (${request.urgency == 'MEDIUM'} ? 'bg-info' : 'bg-success'))">
+                  </span>
+                </td>
+                <td th:text="${request.hospitalName}"></td>
+                <td th:text="${#temporals.format(request.requestDate, 'yyyy-MM-dd HH:mm')}"></td>
+                <td>
+                  <div class="btn-group">
+                    <a th:href="@{/medical-staff/request-details/{id}(id=${request.id})}" class="btn btn-view">
+                      <i class="fas fa-eye me-1"></i> View
+                    </a>
+                    <button class="btn btn-sm btn-success approve-btn"
+                            th:attr="data-request-id=${request.id}">
+                      <i class="fas fa-check"></i> Approve
+                    </button>
+                    <button class="btn btn-sm btn-danger reject-btn"
+                            th:attr="data-request-id=${request.id}">
+                      <i class="fas fa-times"></i> Reject
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr th:if="${pendingRequests == null or pendingRequests.isEmpty()}">
+                <td colspan="7" class="text-center text-muted py-4">
+                  <i class="fas fa-check-circle fs-1 mb-2 d-block text-success"></i>
+                  No pending requests
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Approved Requests (Ready for Fulfillment) -->
+    <div class="row mt-4" th:if="${approvedRequests != null and not approvedRequests.isEmpty()}">
+      <div class="col-12">
+        <div class="requests-table p-4">
+          <h5 class="mb-3">
+            <i class="fas fa-check-circle me-2"></i>Approved Requests (Ready for FIFO Fulfillment)
+          </h5>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead class="table-success">
+              <tr>
+                <th>Request ID</th>
+                <th>Blood Type</th>
+                <th>Quantity</th>
+                <th>Urgency</th>
+                <th>Hospital</th>
+                <th>Approved Date</th>
+                <th>Actions</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="request : ${approvedRequests}">
+                <td th:text="${request.id}"></td>
+                <td th:text="${request.bloodType}" class="fw-bold"></td>
+                <td th:text="${request.quantity}"></td>
+                <td>
+                  <span th:text="${request.urgency}" class="badge"
+                        th:class="${request.urgency == 'CRITICAL'} ? 'bg-danger' :
+                                   (${request.urgency == 'HIGH'} ? 'bg-warning' :
+                                   (${request.urgency == 'MEDIUM'} ? 'bg-info' : 'bg-success'))">
+                  </span>
+                </td>
+                <td th:text="${request.hospitalName}"></td>
+                <td th:text="${request.responseDate} ? ${#temporals.format(request.responseDate, 'yyyy-MM-dd HH:mm')} : 'N/A'"></td>
+                <td>
+                  <button class="btn btn-fulfill fulfill-btn"
+                          th:attr="data-request-id=${request.id}">
+                    <i class="fas fa-shipping-fast me-1"></i> Fulfill (FIFO)
+                  </button>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FIFO Queue Modal -->
+<div class="modal fade" id="fifoQueueModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-list-ol me-2"></i>FIFO Queue for <span id="fifoBloodType">Blood Type</span>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <strong>Usage Order (First In, First Out):</strong>
+          <p class="text-muted small">Blood closest to expiration will be used first</p>
+        </div>
+        <div id="fifoQueueList">
+          <!-- FIFO queue items will be populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Update Inventory Modal -->
+<div class="modal fade" id="updateInventoryModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Update Blood Inventory</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="/medical-staff/update-inventory/" method="post" id="updateInventoryForm">
+        <div class="modal-body">
+          <input type="hidden" id="inventoryId" name="inventoryId">
+          <div class="mb-3">
+            <label class="form-label">Quantity (Units)</label>
+            <input type="number" class="form-control" name="quantity" min="0" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Threshold (Minimum Units Before Alert)</label>
+            <input type="number" class="form-control" name="threshold" min="1" required>
+            <div class="form-text">Set the minimum quantity before generating low stock alerts</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Inventory</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Inventory Modal -->
+<div class="modal fade" id="addInventoryModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">Add Blood to Inventory</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form th:action="@{/medical-staff/add-inventory}" method="post" th:object="${bloodInventoryDTO}">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Blood Type</label>
+            <select class="form-select" th:field="*{bloodType}" required>
+              <option value="">Select Blood Type</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Quantity (Units)</label>
+            <input type="number" class="form-control" th:field="*{quantity}" min="1" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Threshold (Minimum Units Before Alert)</label>
+            <input type="number" class="form-control" th:field="*{threshold}" min="1">
+            <div class="form-text">Optional. Leave blank to use default threshold for this blood type</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Donation Date</label>
+            <input type="date" class="form-control" th:field="*{donationDate}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Expiration Date</label>
+            <input type="date" class="form-control" th:field="*{expirationDate}">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">Add to Inventory</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Approve/Reject/Fulfill Modals -->
+<div class="modal fade" id="actionModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="actionModalTitle">Process Request</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="actionForm" method="post">
+        <div class="modal-body">
+          <input type="hidden" id="requestId" name="requestId">
+          <div class="mb-3">
+            <label class="form-label">Notes (Optional)</label>
+            <textarea class="form-control" name="notes" rows="3" placeholder="Add any notes..."></textarea>
+          </div>
+          <div id="fifoWarning" class="alert alert-info d-none">
+            <i class="fas fa-info-circle me-2"></i>
+            Blood will be automatically allocated using FIFO system (oldest expiration first)
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn" id="actionButton">Process</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Sample blood inventory data (in real app, this would come from server)
+  const bloodInventoryData = {
+    'O+': [
+      {batch: 'O+-001', quantity: 5, expiration: '2024-01-15', donation: '2023-12-01', daysToExpire: 10},
+      {batch: 'O+-002', quantity: 8, expiration: '2024-02-01', donation: '2023-12-15', daysToExpire: 27}
+    ],
+    'O-': [
+      {batch: 'O--001', quantity: 3, expiration: '2024-01-20', donation: '2023-12-05', daysToExpire: 15}
+    ],
+    'A+': [
+      {batch: 'A+-001', quantity: 6, expiration: '2024-01-25', donation: '2023-12-10', daysToExpire: 20}
+    ],
+    'A-': [],
+    'B+': [
+      {batch: 'B+-001', quantity: 4, expiration: '2024-01-18', donation: '2023-12-08', daysToExpire: 13}
+    ],
+    'B-': [],
+    'AB+': [
+      {batch: 'AB+-001', quantity: 2, expiration: '2024-01-12', donation: '2023-11-28', daysToExpire: 7}
+    ],
+    'AB-': []
+  };
+
+  function confirmLogout() {
+    return confirm("Are you sure you want to logout?");
+  }
+
+  function showAvailableStock(bloodType) {
+    const stockDiv = document.getElementById('availableStock');
+    if (bloodType && bloodInventoryData[bloodType]) {
+      const batches = bloodInventoryData[bloodType];
+      const totalUnits = batches.reduce((sum, batch) => sum + batch.quantity, 0);
+
+      if (totalUnits > 0) {
+        stockDiv.innerHTML = `
+          <i class="fas fa-info-circle text-info"></i>
+          Available: <strong>${totalUnits} units</strong> in ${batches.length} batch(es)
+          <br><small>Next expiry: ${batches[0]?.expiration || 'N/A'} (${batches[0]?.daysToExpire || 0} days)</small>
+        `;
+        stockDiv.className = 'mt-2 small text-info';
+      } else {
+        stockDiv.innerHTML = '<i class="fas fa-exclamation-triangle text-warning"></i> No stock available - donors will be notified if used';
+        stockDiv.className = 'mt-2 small text-warning';
+      }
+    } else {
+      stockDiv.innerHTML = '';
+    }
+  }
+
+  function showFIFOQueue(bloodType) {
+    const modal = new bootstrap.Modal(document.getElementById('fifoQueueModal'));
+    document.getElementById('fifoBloodType').textContent = bloodType;
+
+    const queueList = document.getElementById('fifoQueueList');
+    const batches = bloodInventoryData[bloodType] || [];
+
+    if (batches.length === 0) {
+      queueList.innerHTML = '<div class="text-center text-muted py-4">No inventory available for this blood type</div>';
+    } else {
+      let queueHTML = '<div class="list-group">';
+      batches.forEach((batch, index) => {
+        const urgentClass = batch.daysToExpire <= 7 ? 'urgent' : (batch.daysToExpire <= 14 ? 'warning' : '');
+        const priorityText = index === 0 ? ' <span class="badge bg-primary">Next to Use</span>' : '';
+
+        queueHTML += `
+          <div class="fifo-batch-item ${urgentClass}">
+            <div>
+              <strong>${batch.batch}</strong> - ${batch.quantity} units${priorityText}
+              <br><small>Donated: ${batch.donation} | Expires: ${batch.expiration}</small>
+            </div>
+            <div class="text-end">
+              <span class="badge ${batch.daysToExpire <= 7 ? 'bg-danger' : (batch.daysToExpire <= 14 ? 'bg-warning' : 'bg-success')}">
+                ${batch.daysToExpire} days
+              </span>
+            </div>
+          </div>
+        `;
+      });
+      queueHTML += '</div>';
+      queueList.innerHTML = queueHTML;
+    }
+
+    modal.show();
+  }
+
+  function deleteInventoryFromButton(button) {
+    const inventoryId = button.getAttribute('data-inventory-id');
+    if (confirm('Are you sure you want to delete this blood inventory entry?')) {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/medical-staff/delete-inventory/' + inventoryId;
+      document.body.appendChild(form);
+      form.submit();
+    }
+  }
+
+  function deleteExpiredBloodFromButton(button) {
+    const inventoryId = button.getAttribute('data-inventory-id');
+    if (confirm('Are you sure you want to delete this expired blood?')) {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/medical-staff/delete-expired/' + inventoryId;
+      document.body.appendChild(form);
+      form.submit();
+    }
+  }
+
+  function clearExpiredHighlight(button) {
+    const inventoryId = button.getAttribute('data-inventory-id');
+    if (confirm('Are you sure you want to clear the expired status for this blood?')) {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/medical-staff/clear-expired-status/' + inventoryId;
+      document.body.appendChild(form);
+      form.submit();
+    }
+  }
+
+  // Notification Management Functions
+  function deleteSingleNotification(button) {
+    const notificationId = button.getAttribute('data-notification-id');
+    if (confirm('Are you sure you want to delete this notification? This will remove it from all donor dashboards.')) {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/medical-staff/delete-notification/' + notificationId;
+      document.body.appendChild(form);
+      form.submit();
+    }
+  }
+
+  function deleteAllNotificationsByBloodType() {
+    const bloodType = document.getElementById('deleteBloodType').value;
+    if (!bloodType) {
+      alert('Please select a blood type');
+      return;
+    }
+
+    if (confirm('Are you sure you want to delete ALL active notifications for blood type ' + bloodType + '? This will remove them from all donor dashboards.')) {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/medical-staff/delete-all-notifications/' + bloodType;
+      document.body.appendChild(form);
+      form.submit();
+    }
+  }
+
+  function loadActiveNotifications() {
+    fetch('/medical-staff/active-donor-notifications')
+            .then(response => response.json())
+            .then(notifications => {
+              const container = document.getElementById('activeNotificationsList');
+
+              if (notifications.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-check-circle fs-1 mb-2 d-block text-success"></i>
+                        No active donor notifications
+                    </div>
+                `;
+                return;
+              }
+
+              let html = '<div class="list-group">';
+              notifications.forEach(notification => {
+                const timeAgo = getTimeAgo(new Date(notification.date));
+                html += `
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="flex-grow-1">
+                            <div class="fw-bold">${notification.bloodType} - ${notification.type.replace('_', ' ')}</div>
+                            <div class="small text-muted">${notification.message}</div>
+                            <div class="small text-muted">${timeAgo}</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger ms-2"
+                                onclick="deleteSingleNotification(this)"
+                                data-notification-id="${notification.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+              });
+              html += '</div>';
+              container.innerHTML = html;
+            })
+            .catch(error => {
+              console.error('Error loading notifications:', error);
+              document.getElementById('activeNotificationsList').innerHTML = `
+                <div class="alert alert-danger">Error loading notifications</div>
+            `;
+            });
+  }
+
+  function getTimeAgo(date) {
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Update Inventory Modal
+    const updateModal = document.getElementById('updateInventoryModal');
+    if (updateModal) {
+      updateModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const inventoryId = button.getAttribute('data-inventory-id');
+        const currentQuantity = button.getAttribute('data-current-quantity');
+        const currentThreshold = button.getAttribute('data-current-threshold');
+
+        document.getElementById('inventoryId').value = inventoryId;
+        updateModal.querySelector('input[name="quantity"]').value = currentQuantity;
+        updateModal.querySelector('input[name="threshold"]').value = currentThreshold;
+
+        const form = updateModal.querySelector('form');
+        form.action = '/medical-staff/update-inventory/' + inventoryId;
+      });
+    }
+
+    // Action Modal for Approve/Reject/Fulfill
+    const actionModal = new bootstrap.Modal(document.getElementById('actionModal'));
+    const actionForm = document.getElementById('actionForm');
+    const fifoWarning = document.getElementById('fifoWarning');
+
+    document.querySelectorAll('.approve-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const requestId = this.getAttribute('data-request-id');
+        document.getElementById('requestId').value = requestId;
+        document.getElementById('actionModalTitle').textContent = 'Approve Request';
+        document.getElementById('actionButton').textContent = 'Approve';
+        document.getElementById('actionButton').className = 'btn btn-success';
+        actionForm.action = '/medical-staff/approve-request/' + requestId;
+        fifoWarning.classList.add('d-none');
+        actionModal.show();
+      });
+    });
+
+    document.querySelectorAll('.reject-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const requestId = this.getAttribute('data-request-id');
+        document.getElementById('requestId').value = requestId;
+        document.getElementById('actionModalTitle').textContent = 'Reject Request';
+        document.getElementById('actionButton').textContent = 'Reject';
+        document.getElementById('actionButton').className = 'btn btn-danger';
+        actionForm.action = '/medical-staff/reject-request/' + requestId;
+        fifoWarning.classList.add('d-none');
+        actionModal.show();
+      });
+    });
+
+    document.querySelectorAll('.fulfill-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const requestId = this.getAttribute('data-request-id');
+        document.getElementById('requestId').value = requestId;
+        document.getElementById('actionModalTitle').textContent = 'Fulfill Request (FIFO)';
+        document.getElementById('actionButton').textContent = 'Fulfill with FIFO';
+        document.getElementById('actionButton').className = 'btn btn-fulfill';
+        actionForm.action = '/medical-staff/fulfill-request/' + requestId;
+        fifoWarning.classList.remove('d-none');
+        actionModal.show();
+      });
+    });
+
+    // Auto-hide alerts
+    setTimeout(() => {
+      document.querySelectorAll('.alert').forEach(alert => {
+        bootstrap.Alert.getOrCreateInstance(alert).close();
+      });
+    }, 5000);
+
+    // Counter animations
+    const counters = document.querySelectorAll('.stat-number');
+    counters.forEach(counter => {
+      const target = parseInt(counter.textContent) || 0;
+      let current = 0;
+      const increment = target / 30;
+
+      const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+          current = target;
+          clearInterval(timer);
+        }
+        counter.textContent = Math.floor(current);
+      }, 50);
+    });
+
+    // Highlight expired blood rows
+    const expiredRows = document.querySelectorAll('.expired-row');
+    expiredRows.forEach(row => {
+      row.classList.add('highlight-expired');
+    });
+
+    // Load active notifications when page loads
+    loadActiveNotifications();
+
+    // Auto-refresh notifications every 30 seconds
+    setInterval(loadActiveNotifications, 30000);
+  });
+</script>
+</body>
+</html>

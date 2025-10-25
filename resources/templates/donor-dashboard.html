@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donor Dashboard - Give Blood, Give Life</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #374151;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #dc2626;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background: #dc2626;
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.3);
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .btn-logout {
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(107, 114, 128, 0.3);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding-top: 100px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        .welcome-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .welcome-header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 900;
+            font-size: 2rem;
+            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-text h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #1f2937, #374151);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-text p {
+            color: #6b7280;
+            font-size: 1.1rem;
+        }
+
+        .blood-type-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.3);
+        }
+
+        .blood-type-missing {
+            background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+            position: relative;
+        }
+
+        .blood-type-missing::after {
+            content: " - Please update your profile";
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        /* Verification Badge */
+        .verified-badge {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .verification-pending {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .card-icon.donations {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+        }
+
+        .card-icon.eligibility {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .card-icon.ranking {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .card-icon.verification {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+
+        .card-icon.camp-eligibility {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .stat-large {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .eligibility-status {
+            padding: 1rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .eligible {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+
+        .not-eligible {
+            background: linear-gradient(135deg, #fed7d7, #fbb6ce);
+            color: #991b1b;
+            border: 1px solid #dc2626;
+        }
+
+        .camp-eligible {
+            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+            color: #3730a3;
+            border: 1px solid #4f46e5;
+        }
+
+        .camp-not-eligible {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #92400e;
+            border: 1px solid #f59e0b;
+        }
+
+        .countdown {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 0.5rem;
+        }
+
+        /* Notifications */
+        .notifications-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .notification-item {
+            padding: 1rem;
+            border-left: 4px solid #dc2626;
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .notification-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.1);
+        }
+
+        /* Urgent Notification Styles */
+        .urgent-notification {
+            border-left: 4px solid #dc2626 !important;
+            background: linear-gradient(135deg, #fef2f2, #fed7d7) !important;
+            animation: pulse-urgent 2s infinite;
+        }
+
+        @keyframes pulse-urgent {
+            0% { background-color: #fef2f2; }
+            50% { background-color: #fed7d7; }
+            100% { background-color: #fef2f2; }
+        }
+
+        .notification-date {
+            font-size: 0.9rem;
+            color: #6b7280;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .notification-message {
+            color: #374151;
+            line-height: 1.5;
+        }
+
+        .no-notifications {
+            text-align: center;
+            color: #6b7280;
+            font-style: italic;
+            padding: 2rem;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-action {
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-donate {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: white;
+            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3);
+        }
+
+        .btn-donate:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(220, 38, 38, 0.4);
+        }
+
+        .btn-schedule {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-schedule:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-profile {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-profile:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-camps {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-camps:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(139, 92, 246, 0.4);
+        }
+
+        /* Verification Benefits */
+        .verification-benefits {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .benefits-list {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .benefits-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            color: #1e40af;
+        }
+
+        /* Badge Styles */
+        .badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .bg-danger {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: white;
+        }
+
+        .bg-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .bg-info {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+
+        .bg-purple {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #b91c1c, #7f1d1d);
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.3);
+        }
+
+        /* Camp Donation Info */
+        .camp-donation-info {
+            background: linear-gradient(135deg, #faf5ff, #f3e8ff);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            border-left: 4px solid #8b5cf6;
+        }
+
+        .donation-history {
+            margin-top: 1rem;
+        }
+
+        .donation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .donation-item:last-child {
+            border-bottom: none;
+        }
+
+        .restriction-notice {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            color: #92400e;
+        }
+
+        .restriction-notice strong {
+            color: #b45309;
+        }
+
+        /* Donation History Section */
+        .donation-history-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .donation-history-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .donation-card {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border-left: 4px solid #3b82f6;
+            transition: all 0.3s ease;
+        }
+
+        .donation-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .donation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .donation-type {
+            font-weight: 600;
+            color: #374151;
+            display: flex;
+            align-items: center;
+        }
+
+        .donation-date {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .donation-details {
+            margin-bottom: 1rem;
+        }
+
+        .camp-name {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .camp-location {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .donation-restriction {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .no-donation-history {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+
+        .no-donation-history i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .impact-badge {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<header class="header">
+    <nav class="nav">
+        <div class="logo">Give Blood, Give Life</div>
+        <ul class="nav-links">
+            <li><a href="/dashboard" class="active">Dashboard</a></li>
+            <li><a href="/donor/history">Donation History</a></li>
+            <li><a href="/donor/profile">Profile</a></li>
+            <li><a href="/donor/camps">Available Camps</a></li>
+            <li><a href="/donor/feedback">My Feedback</a></li>
+        </ul>
+
+        <div class="user-menu">
+            <div class="user-avatar" th:text="${user.firstName.substring(0,1).toUpperCase() + user.lastName.substring(0,1).toUpperCase()}">JD</div>
+            <span class="user-name" th:text="${user.firstName + ' ' + user.lastName}">John Doe</span>
+            <a href="/logout" class="btn-logout">Logout</a>
+        </div>
+    </nav>
+</header>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Welcome Section -->
+    <section class="welcome-section">
+        <div class="welcome-header">
+            <div class="profile-avatar" th:text="${user.firstName.substring(0,1).toUpperCase() + user.lastName.substring(0,1).toUpperCase()}">JD</div>
+            <div class="welcome-text">
+                <h1>Welcome back, <span th:text="${user.firstName}">John</span>!</h1>
+                <p>Thank you for being a life-saving hero. Your donations make a real difference in our community.</p>
+                <div class="blood-type-badge"
+                     th:text="${user.bloodType != null ? 'Blood Type: ' + user.bloodType : 'Blood Type: Not Set'}"
+                     th:class="${user.bloodType != null ? 'blood-type-badge' : 'blood-type-badge blood-type-missing'}">
+                    Blood Type: O+
+                </div>
+                <!-- Verification Status -->
+                <div th:if="${user.isVerified}" class="verified-badge">
+                    <i class="fas fa-check-circle me-1"></i> Verified Donor
+                </div>
+                <div th:unless="${user.isVerified}" class="verification-pending">
+                    <i class="fas fa-clock me-1"></i> Verification Pending
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Grid -->
+    <section class="dashboard-grid">
+        <!-- Total Donations Card -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <div class="card-icon donations">❤️</div>
+                <div class="card-title">Total Donations</div>
+            </div>
+            <div class="stat-large" th:text="${totalDonations}">0</div>
+            <div class="stat-label">Life-saving donations made</div>
+            <div th:if="${lastDonationDate}" class="stat-label" style="margin-top: 0.5rem;">
+                Last donation: <span th:text="${#temporals.format(lastDonationDate, 'MMM dd, yyyy')}">Never</span>
+            </div>
+            <div th:unless="${lastDonationDate}" class="stat-label" style="margin-top: 0.5rem;">
+                Ready for your first donation!
+            </div>
+            <div class="impact-badge">
+                <i class="fas fa-heart me-1"></i>
+                <span th:text="${totalDonations * 3}">0</span> lives potentially saved
+            </div>
+        </div>
+
+        <!-- Donation Eligibility Card -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <div class="card-icon eligibility">✅</div>
+                <div class="card-title">Donation Eligibility</div>
+            </div>
+            <div th:if="${isEligible}" class="eligibility-status eligible">
+                ✅ You're eligible to donate!
+                <div style="margin-top: 0.5rem; font-size: 0.9rem;">Ready to save lives today</div>
+            </div>
+            <div th:unless="${isEligible}" class="eligibility-status not-eligible">
+                ⏰ Not eligible yet
+                <div class="countdown" th:text="${daysToNext} + ' days remaining'">45 days remaining</div>
+                <div style="margin-top: 0.5rem; font-size: 0.9rem;">
+                    Next eligible: <span th:text="${#temporals.format(nextEligibleDate, 'MMM dd, yyyy')}">Mar 15, 2024</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Camp Registration Eligibility Card -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <div class="card-icon camp-eligibility">🏕️</div>
+                <div class="card-title">Camp Registration</div>
+            </div>
+            <div th:if="${canRegisterForCamps}" class="eligibility-status camp-eligible">
+                ✅ Eligible for Camp Registration
+                <div style="margin-top: 0.5rem; font-size: 0.9rem;">You can register for blood donation camps</div>
+            </div>
+            <div th:unless="${canRegisterForCamps}" class="eligibility-status camp-not-eligible">
+                ⏳ Camp Registration Restricted
+                <div class="countdown" th:text="${daysUntilCampEligible} + ' days remaining'">45 days remaining</div>
+                <div style="margin-top: 0.5rem; font-size: 0.9rem;">
+                    Next eligible: <span th:text="${#temporals.format(nextCampEligibilityDate, 'MMM dd, yyyy')}">Mar 15, 2024</span>
+                </div>
+            </div>
+
+            <!-- Restriction Notice -->
+            <div th:if="${!canRegisterForCamps}" class="restriction-notice">
+                <i class="fas fa-info-circle me-1"></i>
+                <strong>6-Month Restriction:</strong> After donating blood at a camp, you cannot register for new camps for 6 months to ensure your health and safety.
+            </div>
+        </div>
+
+        <!-- Donor Ranking Card -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <div class="card-icon ranking">🏆</div>
+                <div class="card-title">Community Ranking</div>
+            </div>
+            <div class="stat-large" th:text="'#' + ${donorRanking}">#247</div>
+            <div class="stat-label">Among all donors in your region</div>
+            <div class="stat-label" style="margin-top: 0.5rem;">
+                Thank you for your continued support!
+            </div>
+        </div>
+
+        <!-- Verification Status Card -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <div class="card-icon verification">🛡️</div>
+                <div class="card-title">Verification Status</div>
+            </div>
+            <div th:if="${user.isVerified}">
+                <div style="font-size: 2rem; color: #10b981; text-align: center; margin-bottom: 1rem;">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-label" style="text-align: center; color: #065f46;">
+                    Your account is verified!
+                </div>
+                <div th:if="${user.verifiedAt}" class="stat-label" style="text-align: center; margin-top: 0.5rem;">
+                    Verified on: <span th:text="${#temporals.format(user.verifiedAt, 'MMM dd, yyyy')}"></span>
+                </div>
+            </div>
+            <div th:unless="${user.isVerified}">
+                <div style="font-size: 2rem; color: #f59e0b; text-align: center; margin-bottom: 1rem;">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-label" style="text-align: center; color: #92400e;">
+                    Verification in progress
+                </div>
+                <div class="verification-benefits">
+                    <strong>Benefits of being verified:</strong>
+                    <ul class="benefits-list">
+                        <li><i class="fas fa-star" style="color: #f59e0b;"></i> Priority in donation appointments</li>
+                        <li><i class="fas fa-gift" style="color: #f59e0b;"></i> Exclusive rewards and recognition</li>
+                        <li><i class="fas fa-bolt" style="color: #f59e0b;"></i> Faster check-in process</li>
+                        <li><i class="fas fa-shield-alt" style="color: #f59e0b;"></i> Trusted donor status</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Camp Donations Card -->
+        <div class="dashboard-card" th:if="${campDonationHistory != null and not campDonationHistory.isEmpty()}">
+            <div class="card-header">
+                <div class="card-icon donations">🏕️</div>
+                <div class="card-title">Recent Camp Donations</div>
+            </div>
+            <div class="camp-donation-info">
+                <div class="stat-label">Your last camp donation:</div>
+                <div th:if="${lastCampDonation}" style="font-weight: 600; margin: 0.5rem 0;">
+                    <span th:text="${#temporals.format(lastCampDonation.donationDate, 'MMM dd, yyyy')}"></span>
+                    at <span th:text="${lastCampDonation.camp?.campName}"></span>
+                </div>
+
+                <div class="donation-history">
+                    <div class="stat-label" style="margin-bottom: 0.5rem;">Recent camp donations:</div>
+                    <div th:each="donation, iter : ${campDonationHistory}"
+                         th:if="${iter.index < 3}"
+                         class="donation-item">
+                        <span th:text="${donation.camp?.campName}"></span>
+                        <span th:text="${#temporals.format(donation.donationDate, 'MMM dd')}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Donation History Section -->
+    <section class="donation-history-section" th:if="${donations != null and not donations.isEmpty()}">
+        <h2 class="section-title">
+            📋 Recent Donation History
+            <span class="badge bg-purple ms-2" th:text="${donations.size()}">0</span>
+        </h2>
+
+        <div class="donation-history-cards">
+            <div th:each="donation, iter : ${donations}"
+                 th:if="${iter.index < 6}"
+                 class="donation-card">
+                <div class="donation-header">
+                    <div class="donation-type">
+                        <i class="fas fa-tint me-2"
+                           th:class="${donation.camp != null ? 'fas fa-tint text-primary' : 'fas fa-tint text-success'}"></i>
+                        <span th:if="${donation.camp != null}">Camp Donation</span>
+                        <span th:unless="${donation.camp != null}">Regular Donation</span>
+                    </div>
+                    <div class="donation-date" th:text="${#temporals.format(donation.donationDate, 'MMM dd, yyyy')}">
+                        Dec 15, 2024
+                    </div>
+                </div>
+
+                <div th:if="${donation.camp != null}" class="donation-details">
+                    <div class="camp-name" th:text="${donation.camp.campName}">Blood Drive 2024</div>
+                    <div class="camp-location" th:text="${donation.camp.location}">Community Center</div>
+                </div>
+                <div th:unless="${donation.camp != null}" class="donation-details">
+                    <div class="camp-name">Blood Donation Center</div>
+                    <div class="camp-location">Regular Donation</div>
+                </div>
+
+                <div th:if="${donation.isCampDonation}" class="donation-restriction">
+                    <i class="fas fa-info-circle me-1 text-warning"></i>
+                    <small>This donation affects camp registration eligibility</small>
+                </div>
+                <div class="impact-badge" style="margin-top: 0.5rem;">
+                    <i class="fas fa-heart me-1"></i> 3 lives saved
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="/donor/history" class="btn btn-outline-primary">
+                <i class="fas fa-history me-1"></i> View Full Donation History
+            </a>
+        </div>
+    </section>
+
+    <!-- No Donation History Message -->
+    <section class="donation-history-section" th:if="${donations == null or donations.isEmpty()}">
+        <div class="no-donation-history">
+            <i class="fas fa-tint"></i>
+            <h4>No Donations Yet</h4>
+            <p>Start your life-saving journey by making your first blood donation!</p>
+            <p class="text-muted mt-2">Your donation history will appear here once you make your first donation.</p>
+            <a href="/donor/camps" class="btn btn-primary mt-3" th:if="${canRegisterForCamps}">
+                <i class="fas fa-search me-1"></i> Find Donation Opportunities
+            </a>
+            <a href="#schedule" class="btn btn-primary mt-3" th:unless="${canRegisterForCamps}">
+                <i class="fas fa-calendar me-1"></i> Schedule Appointment
+            </a>
+        </div>
+    </section>
+
+    <!-- Recent Notifications -->
+    <section class="notifications-section">
+        <h2 class="section-title">
+            📢 Recent Notifications
+            <span th:if="${urgentRequestCount > 0}"
+                  class="badge bg-danger ms-2"
+                  th:text="${urgentRequestCount}">
+                0
+            </span>
+        </h2>
+
+        <!-- Urgent Blood Requests -->
+        <div th:if="${urgentBloodRequests != null and not #lists.isEmpty(urgentBloodRequests)}">
+            <div th:each="notification : ${urgentBloodRequests}"
+                 class="notification-item urgent-notification">
+                <div class="notification-date">
+                    <i class="fas fa-exclamation-triangle me-1 text-danger"></i>
+                    <span th:text="${#temporals.format(notification.date, 'MMM dd, yyyy HH:mm')}">Dec 15, 2024</span>
+                    <span class="badge bg-danger ms-2">URGENT</span>
+                </div>
+                <div class="notification-message fw-bold text-danger" th:text="${notification.message}">
+                    Your blood type O+ is urgently needed. Please consider donating soon.
+                </div>
+                <div class="mt-2">
+                    <a href="#schedule" class="btn btn-sm btn-danger">
+                        <i class="fas fa-calendar-plus me-1"></i>Schedule Donation
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Regular Notifications -->
+        <div th:if="${notifications != null and not #lists.isEmpty(notifications)}">
+            <div th:each="notification : ${notifications}"
+                 th:if="${notification.type != 'URGENT_BLOOD_REQUEST'}"
+                 class="notification-item">
+                <div class="notification-date" th:text="${#temporals.format(notification.date, 'MMM dd, yyyy')}">
+                    Dec 15, 2024
+                </div>
+                <div class="notification-message" th:text="${notification.message}">
+                    Your blood type O+ is needed. Please consider donating soon.
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${(notifications == null or #lists.isEmpty(notifications)) and
+                      (urgentBloodRequests == null or #lists.isEmpty(urgentBloodRequests))}"
+             class="no-notifications">
+            No recent notifications. We'll keep you updated on donation opportunities!
+        </div>
+    </section>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <a href="#donate" class="btn-action btn-donate" th:if="${isEligible}">
+            🩸 Donate Now
+        </a>
+        <a href="#schedule" class="btn-action btn-schedule">
+            📅 Schedule Appointment
+        </a>
+        <a href="/donor/camps" class="btn-action btn-camps" th:if="${canRegisterForCamps}">
+            🏕️ View Camps
+        </a>
+        <a href="/donor/camps" class="btn-action btn-camps" th:unless="${canRegisterForCamps}" style="opacity: 0.6; cursor: not-allowed;">
+            🏕️ View Camps (Restricted)
+        </a>
+        <a href="/donor/profile" class="btn-action btn-profile">
+            👤 Update Profile
+        </a>
+        <a href="/donor/history" class="btn-action" style="background: linear-gradient(135deg, #6b7280, #4b5563); color: white;">
+            📋 Donation History
+        </a>
+    </div>
+</main>
+
+<script>
+    // Counter animation for total donations
+    document.addEventListener('DOMContentLoaded', function() {
+        const totalDonationsElement = document.querySelector('.stat-large');
+        if (totalDonationsElement) {
+            const target = parseInt(totalDonationsElement.textContent) || 0;
+            let current = 0;
+            const increment = target / 30;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                totalDonationsElement.textContent = Math.floor(current);
+            }, 50);
+        }
+
+        // Add smooth transitions for card hovers
+        const cards = document.querySelectorAll('.dashboard-card, .donation-card');
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px) scale(1.02)';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Profile avatar click effect
+        const avatars = document.querySelectorAll('.user-avatar, .profile-avatar');
+        avatars.forEach(avatar => {
+            avatar.addEventListener('click', function() {
+                this.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 200);
+            });
+        });
+
+        // Header background on scroll
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('.header');
+            if (window.scrollY > 100) {
+                header.style.background = 'rgba(255, 255, 255, 0.98)';
+                header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
+            } else {
+                header.style.background = 'rgba(255, 255, 255, 0.95)';
+                header.style.boxShadow = 'none';
+            }
+        });
+
+        // Smooth scrolling for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Show tooltip for restricted camp button
+        const restrictedCampBtn = document.querySelector('.btn-camps[style*="opacity: 0.6"]');
+        if (restrictedCampBtn) {
+            restrictedCampBtn.addEventListener('mouseenter', function() {
+                this.setAttribute('title', 'Camp registration is restricted for 6 months after your last blood donation');
+            });
+        }
+
+        // Add animation to donation cards
+        const donationCards = document.querySelectorAll('.donation-card');
+        donationCards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.style.animation = 'fadeInUp 0.6s ease-out forwards';
+            card.style.opacity = '0';
+        });
+
+        // Add CSS animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Update impact numbers with animation
+        const impactBadges = document.querySelectorAll('.impact-badge');
+        impactBadges.forEach(badge => {
+            const livesText = badge.querySelector('span');
+            if (livesText) {
+                const target = parseInt(livesText.textContent) || 0;
+                if (target > 0) {
+                    let current = 0;
+                    const increment = target / 20;
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= target) {
+                            current = target;
+                            clearInterval(timer);
+                        }
+                        livesText.textContent = Math.floor(current);
+                    }, 100);
+                }
+            }
+        });
+    });
+
+    // Print donation summary
+    function printSummary() {
+        window.print();
+    }
+
+    // Share achievement
+    function shareAchievement() {
+        const totalDonations = document.querySelector('.stat-large').textContent;
+        const livesSaved = totalDonations * 3;
+        const shareText = `I've donated blood ${totalDonations} times and potentially saved ${livesSaved} lives! Join me in making a difference. ❤️`;
+
+        if (navigator.share) {
+            navigator.share({
+                title: 'My Blood Donation Achievement',
+                text: shareText,
+                url: window.location.href
+            });
+        } else {
+            // Fallback: copy to clipboard
+            navigator.clipboard.writeText(shareText).then(() => {
+                alert('Achievement copied to clipboard! Share it with your friends and family.');
+            });
+        }
+    }
+</script>
+
+<!-- Additional Action Buttons -->
+<div class="container mt-4 mb-4">
+    <div class="d-flex justify-content-center gap-3">
+        <button onclick="printSummary()" class="btn btn-outline-primary">
+            <i class="fas fa-print me-1"></i> Print Summary
+        </button>
+        <button onclick="shareAchievement()" class="btn btn-outline-success">
+            <i class="fas fa-share-alt me-1"></i> Share Achievement
+        </button>
+    </div>
+</div>
+
+</body>
+</html>

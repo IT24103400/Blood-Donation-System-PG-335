@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camp Attendance - Give Blood, Give Life</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      font-family: 'Inter', sans-serif;
+    }
+    .header {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: white;
+      padding: 15px;
+    }
+    .stats-card {
+      background: white;
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+      box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+    }
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 900;
+      margin-bottom: 0.5rem;
+    }
+    .attendee-card {
+      border-left: 4px solid #10b981;
+      transition: transform 0.3s ease;
+    }
+    .attendee-card:hover {
+      transform: translateY(-2px);
+    }
+    .search-result-card {
+      border-left: 4px solid #3b82f6;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .search-result-card:hover {
+      transform: translateY(-2px);
+      background-color: #f8f9fa;
+    }
+    .loading-spinner {
+      display: none;
+    }
+    #searchResults {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+<header class="header">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center">
+      <h1 class="h3 mb-0">Camp Attendance Management</h1>
+      <nav>
+        <a th:href="@{/volunteer/camps}" class="text-white mx-2 text-decoration-none">Back to Camps</a>
+        <a href="/volunteer/dashboard" class="text-white mx-2 text-decoration-none">Dashboard</a>
+        <a href="/logout" class="text-white mx-2 text-decoration-none">Logout</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<div class="container mt-4">
+  <!-- Flash Messages -->
+  <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+    <i class="fas fa-check-circle me-2"></i>
+    <span th:text="${success}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+    <i class="fas fa-exclamation-circle me-2"></i>
+    <span th:text="${error}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+
+  <!-- Camp Header -->
+  <div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h4 class="mb-1" th:text="${camp.campName}">Camp Name</h4>
+          <p class="mb-0" th:text="${camp.location + ' - ' + #temporals.format(camp.campDate, 'MMM dd, yyyy')}"></p>
+        </div>
+        <a th:href="@{/volunteer/camps/{id}/registrations(id=${camp.id})}" class="btn btn-light">
+          <i class="fas fa-users me-1"></i> View Registrations
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="stats-card">
+        <div class="stat-number text-primary" th:text="${stats?.totalAttendees ?: 0}">0</div>
+        <div class="text-muted">Total Attendees</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stats-card">
+        <div class="stat-number text-success" th:text="${stats?.bloodDonations ?: 0}">0</div>
+        <div class="text-muted">Blood Donations</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stats-card">
+        <div class="stat-number text-info" th:text="${stats?.registeredDonors ?: 0}">0</div>
+        <div class="text-muted">Registered Donors</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stats-card">
+        <div class="stat-number text-warning" th:text="${(stats != null ? #numbers.formatDecimal(stats.donationRate, 1, 1) : 0) + '%'}">0%</div>
+        <div class="text-muted">Donation Rate</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Attendance Marking Section -->
+  <div class="card mb-4">
+    <div class="card-header bg-warning text-dark">
+      <h5 class="mb-0"><i class="fas fa-user-check me-2"></i>Quick Attendance Marking</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-8">
+          <div class="mb-3">
+            <label for="donorSearch" class="form-label">Search Registered Donors by Name</label>
+            <div class="input-group">
+              <input type="text"
+                     class="form-control"
+                     id="donorSearch"
+                     placeholder="Start typing donor name...">
+              <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div class="form-text">Search for registered donors to mark their attendance</div>
+          </div>
+
+          <!-- Loading Spinner -->
+          <div id="searchLoading" class="loading-spinner text-center">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Searching donors...</p>
+          </div>
+
+          <!-- Search Results -->
+          <div id="searchResults" class="mt-3" style="display: none;">
+            <h6 class="text-muted mb-3">Search Results:</h6>
+            <div id="searchResultsList"></div>
+          </div>
+
+          <!-- No Results Message -->
+          <div id="noResults" class="alert alert-info mt-3" style="display: none;">
+            <i class="fas fa-info-circle me-2"></i>
+            No registered donors found matching your search.
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card bg-light">
+            <div class="card-body">
+              <h6 class="card-title"><i class="fas fa-lightbulb me-2"></i>Quick Tips</h6>
+              <ul class="small mb-0">
+                <li>Search donors by first or last name</li>
+                <li>Only registered and verified donors will appear</li>
+                <li>Donors who already have attendance recorded won't appear</li>
+                <li>Click on a donor to mark their attendance instantly</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Bulk Actions -->
+          <div class="card mt-3">
+            <div class="card-body">
+              <h6 class="card-title">Bulk Actions</h6>
+              <button class="btn btn-outline-primary btn-sm w-100 mb-2" id="markAllPresent">
+                <i class="fas fa-user-check me-1"></i> Mark All Registered as Present
+              </button>
+              <button class="btn btn-outline-success btn-sm w-100" id="refreshList">
+                <i class="fas fa-sync me-1"></i> Refresh List
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Section for Existing Attendees -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Search Existing Attendees</h5>
+      <form method="get" class="row g-3">
+        <div class="col-md-8">
+          <input type="text"
+                 name="search"
+                 class="form-control"
+                 placeholder="Search attendees by name..."
+                 th:value="${searchQuery}">
+        </div>
+        <div class="col-md-4">
+          <button type="submit" class="btn btn-primary me-2">
+            <i class="fas fa-search me-1"></i> Search
+          </button>
+          <a th:href="@{/volunteer/camps/{id}/attendance(id=${camp.id})}" class="btn btn-outline-secondary">
+            <i class="fas fa-sync me-1"></i> Show All
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Attendees List -->
+  <div class="card">
+    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">
+        <i class="fas fa-users me-2"></i>
+        Camp Attendees
+        <span class="badge bg-light text-dark ms-2" th:text="${attendees != null ? attendees.size() : 0}">0</span>
+      </h5>
+    </div>
+    <div class="card-body">
+      <div th:if="${attendees != null and not attendees.isEmpty()}">
+        <div th:each="attendance : ${attendees}" class="card attendee-card mb-3">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-md-3">
+                <h6 class="mb-1" th:text="${attendance.donor.firstName + ' ' + attendance.donor.lastName}"></h6>
+                <small class="text-muted" th:text="'Blood Type: ' + ${attendance.donor.bloodType ?: 'Not specified'}"></small>
+              </div>
+              <div class="col-md-2">
+                <small class="text-muted">Attended At</small>
+                <div th:text="${#temporals.format(attendance.attendedAt, 'MMM dd, HH:mm')}"></div>
+              </div>
+              <div class="col-md-2">
+                <small class="text-muted">Blood Donated</small>
+                <div>
+                  <span th:if="${attendance.bloodDonated}" class="badge bg-success">Yes</span>
+                  <span th:unless="${attendance.bloodDonated}" class="badge bg-secondary">No</span>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <small class="text-muted">Notes</small>
+                <div th:text="${attendance.notes ?: 'No notes'}"></div>
+              </div>
+              <div class="col-md-2">
+                <div class="btn-group">
+                  <a th:href="@{/volunteer/camps/{campId}/attendance/{donorId}(campId=${camp.id}, donorId=${attendance.donor.id})}"
+                     class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-eye me-1"></i> View
+                  </a>
+                  <form th:action="@{/volunteer/camps/{campId}/attendance/mark-donation(campId=${camp.id})}"
+                        method="post"
+                        class="d-inline"
+                        th:if="${not attendance.bloodDonated}">
+                    <input type="hidden" name="donorId" th:value="${attendance.donor.id}">
+                    <button type="submit" class="btn btn-sm btn-outline-success ms-1">
+                      <i class="fas fa-tint me-1"></i> Mark Donation
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div th:if="${attendees == null or attendees.isEmpty()}" class="text-center py-5">
+        <i class="fas fa-users fs-1 text-muted mb-3"></i>
+        <h5 class="text-muted">No Attendees Found</h5>
+        <p class="text-muted" th:if="${searchQuery}">No attendees match your search criteria.</p>
+        <p class="text-muted" th:unless="${searchQuery}">No attendees have been recorded for this camp yet.</p>
+        <a th:href="@{/volunteer/camps/{id}/registrations(id=${camp.id})}" class="btn btn-primary mt-2">
+          <i class="fas fa-users me-1"></i> View Registered Donors
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Get camp ID from Thymeleaf
+  const campId = [[${camp.id}]];
+
+  // DOM Elements
+  const donorSearch = document.getElementById('donorSearch');
+  const clearSearch = document.getElementById('clearSearch');
+  const searchLoading = document.getElementById('searchLoading');
+  const searchResults = document.getElementById('searchResults');
+  const searchResultsList = document.getElementById('searchResultsList');
+  const noResults = document.getElementById('noResults');
+  const markAllPresent = document.getElementById('markAllPresent');
+  const refreshList = document.getElementById('refreshList');
+
+  // Search timeout reference
+  let searchTimeout;
+
+  // Event Listeners
+  donorSearch.addEventListener('input', handleSearchInput);
+  clearSearch.addEventListener('click', clearSearchInput);
+  markAllPresent.addEventListener('click', markAllRegisteredAsPresent);
+  refreshList.addEventListener('click', refreshPage);
+
+  // Search input handler with debouncing
+  function handleSearchInput(e) {
+    const query = e.target.value.trim();
+
+    // Clear previous timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+
+    // Hide previous results
+    hideResults();
+
+    // If query is too short, don't search
+    if (query.length < 2) {
+      return;
+    }
+
+    // Show loading spinner
+    showLoading();
+
+    // Set new timeout for search
+    searchTimeout = setTimeout(() => {
+      searchDonors(query);
+    }, 500);
+  }
+
+  // Search donors function
+  function searchDonors(query) {
+    fetch(`/volunteer/camps/${campId}/search-donors?query=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(donors => {
+              hideLoading();
+              displaySearchResults(donors);
+            })
+            .catch(error => {
+              console.error('Error searching donors:', error);
+              hideLoading();
+              showError('Error searching donors');
+            });
+  }
+
+  // Display search results
+  function displaySearchResults(donors) {
+    if (donors.length === 0) {
+      showNoResults();
+      return;
+    }
+
+    searchResultsList.innerHTML = '';
+
+    donors.forEach(donor => {
+      const donorCard = createDonorCard(donor);
+      searchResultsList.appendChild(donorCard);
+    });
+
+    searchResults.style.display = 'block';
+  }
+
+  // Create donor card for search results
+  function createDonorCard(donor) {
+    const card = document.createElement('div');
+    card.className = 'card search-result-card mb-2';
+    card.innerHTML = `
+            <div class="card-body py-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">${donor.firstName} ${donor.lastName}</h6>
+                        <small class="text-muted">
+                            ${donor.bloodType ? 'Blood Type: ' + donor.bloodType : 'Blood Type: Not specified'} |
+                            Email: ${donor.email}
+                        </small>
+                    </div>
+                    <button class="btn btn-success btn-sm mark-attendance-btn" data-donor-id="${donor.id}">
+                        <i class="fas fa-check me-1"></i> Mark Present
+                    </button>
+                </div>
+            </div>
+        `;
+
+    // Add click event to mark attendance
+    const markBtn = card.querySelector('.mark-attendance-btn');
+    markBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      markDonorAttendance(donor.id, donor.firstName + ' ' + donor.lastName);
+    });
+
+    // Also allow clicking anywhere on the card
+    card.addEventListener('click', () => {
+      markDonorAttendance(donor.id, donor.firstName + ' ' + donor.lastName);
+    });
+
+    return card;
+  }
+
+  // Mark donor attendance
+  function markDonorAttendance(donorId, donorName) {
+    fetch(`/volunteer/camps/${campId}/mark-attendance`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `donorId=${donorId}`
+    })
+            .then(response => response.json())
+            .then(result => {
+              if (result.success) {
+                showSuccess(`Attendance marked for ${donorName}`);
+                // Clear search and refresh the page after a short delay
+                clearSearchInput();
+                setTimeout(() => {
+                  window.location.reload();
+                }, 1500);
+              } else {
+                showError(result.message);
+              }
+            })
+            .catch(error => {
+              console.error('Error marking attendance:', error);
+              showError('Error marking attendance');
+            });
+  }
+
+  // Mark all registered donors as present
+  function markAllRegisteredAsPresent() {
+    if (!confirm('Are you sure you want to mark all registered donors as present? This will record attendance for all registered donors who haven\'t been marked yet.')) {
+      return;
+    }
+
+    // Search for all registered donors (empty query returns all)
+    fetch(`/volunteer/camps/${campId}/search-donors?query=`)
+            .then(response => response.json())
+            .then(donors => {
+              if (donors.length === 0) {
+                showInfo('No registered donors found to mark attendance for.');
+                return;
+              }
+
+              const donorIds = donors.map(donor => donor.id);
+
+              fetch(`/volunteer/camps/${campId}/mark-multiple-attendance`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `donorIds=${donorIds.join(',')}`
+              })
+                      .then(response => response.json())
+                      .then(result => {
+                        if (result.success) {
+                          showSuccess(`Successfully marked attendance for ${result.successCount} donors. Failed: ${result.errorCount}`);
+                          setTimeout(() => {
+                            window.location.reload();
+                          }, 2000);
+                        } else {
+                          showError(result.message);
+                        }
+                      })
+                      .catch(error => {
+                        console.error('Error marking multiple attendance:', error);
+                        showError('Error marking attendance for multiple donors');
+                      });
+            })
+            .catch(error => {
+              console.error('Error fetching registered donors:', error);
+              showError('Error fetching registered donors');
+            });
+  }
+
+  // Utility functions
+  function showLoading() {
+    searchLoading.style.display = 'block';
+    hideResults();
+  }
+
+  function hideLoading() {
+    searchLoading.style.display = 'none';
+  }
+
+  function hideResults() {
+    searchResults.style.display = 'none';
+    noResults.style.display = 'none';
+  }
+
+  function showNoResults() {
+    noResults.style.display = 'block';
+    searchResults.style.display = 'none';
+  }
+
+  function clearSearchInput() {
+    donorSearch.value = '';
+    hideResults();
+  }
+
+  function refreshPage() {
+    window.location.reload();
+  }
+
+  // Notification functions
+  function showSuccess(message) {
+    showNotification(message, 'success');
+  }
+
+  function showError(message) {
+    showNotification(message, 'danger');
+  }
+
+  function showInfo(message) {
+    showNotification(message, 'info');
+  }
+
+  function showNotification(message, type) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} alert-dismissible fade show`;
+    notification.innerHTML = `
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'danger' ? 'fa-exclamation-circle' : 'fa-info-circle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+    // Add to page
+    document.querySelector('.container').insertBefore(notification, document.querySelector('.container').firstChild);
+
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.remove();
+      }
+    }, 5000);
+  }
+
+  // Auto-focus search input on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    donorSearch.focus();
+
+    // Auto-hide alerts after 5 seconds
+    setTimeout(() => {
+      const alerts = document.querySelectorAll('.alert');
+      alerts.forEach(alert => {
+        const bsAlert = new bootstrap.Alert(alert);
+        bsAlert.close();
+      });
+    }, 5000);
+  });
+</script>
+</body>
+</html>

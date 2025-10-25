@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donation History - Give Blood, Give Life</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #374151;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #dc2626;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background: #dc2626;
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.3);
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .btn-logout {
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(107, 114, 128, 0.3);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding-top: 100px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        .page-header {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #1f2937, #374151);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: #6b7280;
+            font-size: 1.1rem;
+        }
+
+        /* Statistics Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-number.total {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-number.camp {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-number.regular {
+            background: linear-gradient(135deg, #10b981, #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        /* Donation History */
+        .history-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .donation-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .donation-table th {
+            background: #f8fafc;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .donation-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .donation-row:hover {
+            background: #f8fafc;
+        }
+
+        .donation-type-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-camp {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-regular {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .camp-info {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .restriction-info {
+            color: #f59e0b;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        .no-donations {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+
+        .no-donations i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .filter-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #374151;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: white;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        /* Timeline View */
+        .timeline-view {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .timeline-item {
+            display: flex;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: -2rem;
+            width: 2px;
+            background: #e5e7eb;
+        }
+
+        .timeline-item:last-child::before {
+            display: none;
+        }
+
+        .timeline-marker {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #3b82f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-right: 1rem;
+            z-index: 1;
+            flex-shrink: 0;
+        }
+
+        .timeline-content {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            flex: 1;
+        }
+
+        /* View Toggle */
+        .view-toggle {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1rem;
+        }
+
+        .toggle-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            background: white;
+            cursor: pointer;
+        }
+
+        .toggle-btn:first-child {
+            border-radius: 6px 0 0 6px;
+        }
+
+        .toggle-btn:last-child {
+            border-radius: 0 6px 6px 0;
+        }
+
+        .toggle-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<header class="header">
+    <nav class="nav">
+        <div class="logo">Give Blood, Give Life</div>
+        <ul class="nav-links">
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/donor/history" class="active">Donation History</a></li>
+            <li><a href="/donor/profile">Profile</a></li>
+            <li><a href="/donor/camps">Available Camps</a></li>
+            <li><a href="/donor/feedback">My Feedback</a></li>
+        </ul>
+
+        <div class="user-menu">
+            <div class="user-avatar" th:text="${user.firstName.substring(0,1).toUpperCase() + user.lastName.substring(0,1).toUpperCase()}">JD</div>
+            <span class="user-name" th:text="${user.firstName + ' ' + user.lastName}">John Doe</span>
+            <a href="/logout" class="btn-logout">Logout</a>
+        </div>
+    </nav>
+</header>
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Page Header -->
+    <section class="page-header">
+        <h1 class="page-title">Donation History</h1>
+        <p class="page-subtitle">Track your life-saving journey and see the impact you've made in your community</p>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number total" th:text="${totalDonations}">0</div>
+                <div class="stat-label">Total Donations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number camp" th:text="${totalCampDonations}">0</div>
+                <div class="stat-label">Camp Donations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number regular" th:text="${totalDonations - totalCampDonations}">0</div>
+                <div class="stat-label">Regular Donations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" style="color: #dc2626;" th:text="${totalDonations * 3}">0</div>
+                <div class="stat-label">Lives Potentially Saved</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filter Section -->
+    <section class="filter-section">
+        <div class="filter-title">Filter Donations:</div>
+        <div class="filter-buttons">
+            <button class="filter-btn active" onclick="filterDonations('all')">All Donations</button>
+            <button class="filter-btn" onclick="filterDonations('camp')">Camp Donations</button>
+            <button class="filter-btn" onclick="filterDonations('regular')">Regular Donations</button>
+            <button class="filter-btn" onclick="filterDonations('recent')">Last 6 Months</button>
+        </div>
+    </section>
+
+    <!-- View Toggle -->
+    <div class="view-toggle">
+        <button class="toggle-btn active" onclick="toggleView('table')">
+            <i class="fas fa-table me-1"></i> Table View
+        </button>
+        <button class="toggle-btn" onclick="toggleView('timeline')">
+            <i class="fas fa-stream me-1"></i> Timeline View
+        </button>
+    </div>
+
+    <!-- Donation History -->
+    <section class="history-section">
+        <h2 class="section-title">
+            <i class="fas fa-history me-2"></i>
+            Your Donation History
+        </h2>
+
+        <!-- Table View -->
+        <div id="tableView">
+            <div th:if="${donations != null and not donations.isEmpty()}">
+                <table class="donation-table">
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Impact</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="donation : ${donations}" class="donation-row"
+                        th:attr="data-type=${donation.camp != null ? 'camp' : 'regular'},
+                                    data-date=${#temporals.format(donation.donationDate, 'yyyy-MM-dd')}">
+                        <td>
+                            <strong th:text="${#temporals.format(donation.donationDate, 'MMM dd, yyyy')}"></strong>
+                        </td>
+                        <td>
+                                <span th:if="${donation.camp != null}"
+                                      class="donation-type-badge badge-camp">
+                                    <i class="fas fa-campground me-1"></i> Camp
+                                </span>
+                            <span th:unless="${donation.camp != null}"
+                                  class="donation-type-badge badge-regular">
+                                    <i class="fas fa-hospital me-1"></i> Regular
+                                </span>
+                            <div th:if="${donation.camp != null}" class="camp-info">
+                                <small th:text="${donation.camp.campName}"></small>
+                            </div>
+                        </td>
+                        <td>
+                            <span th:if="${donation.camp != null}" th:text="${donation.camp.location}"></span>
+                            <span th:unless="${donation.camp != null}">Blood Donation Center</span>
+                        </td>
+                        <td>
+                                <span th:if="${donation.isCampDonation}" class="restriction-info">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Affects camp eligibility
+                                </span>
+                            <span th:unless="${donation.isCampDonation}" style="color: #6b7280;">
+                                    Standard donation
+                                </span>
+                        </td>
+                        <td>
+                            <strong style="color: #dc2626;">3 lives saved</strong>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:if="${donations == null or donations.isEmpty()}" class="no-donations">
+                <i class="fas fa-tint"></i>
+                <h4>No Donations Yet</h4>
+                <p>Start your life-saving journey by making your first blood donation!</p>
+                <a href="/donor/camps" class="btn btn-primary mt-2">
+                    <i class="fas fa-search me-1"></i> Find Donation Opportunities
+                </a>
+            </div>
+        </div>
+
+        <!-- Timeline View -->
+        <div id="timelineView" class="timeline-view">
+            <div th:if="${donations != null and not donations.isEmpty()}">
+                <div th:each="donation : ${donations}" class="timeline-item"
+                     th:attr="data-type=${donation.camp != null ? 'camp' : 'regular'},
+                             data-date=${#temporals.format(donation.donationDate, 'yyyy-MM-dd')}">
+                    <div class="timeline-marker">
+                        <i class="fas fa-tint"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 th:text="${#temporals.format(donation.donationDate, 'MMM dd, yyyy')}"></h6>
+                                <div th:if="${donation.camp != null}">
+                                    <strong th:text="${donation.camp.campName}"></strong>
+                                    <div class="text-muted" th:text="${donation.camp.location}"></div>
+                                </div>
+                                <div th:unless="${donation.camp != null}">
+                                    <strong>Regular Blood Donation</strong>
+                                    <div class="text-muted">Blood Donation Center</div>
+                                </div>
+                            </div>
+                            <div>
+                                <span th:if="${donation.camp != null}"
+                                      class="donation-type-badge badge-camp">
+                                    Camp Donation
+                                </span>
+                                <span th:unless="${donation.camp != null}"
+                                      class="donation-type-badge badge-regular">
+                                    Regular Donation
+                                </span>
+                            </div>
+                        </div>
+                        <div th:if="${donation.isCampDonation}" class="restriction-info mt-2">
+                            <i class="fas fa-info-circle me-1"></i>
+                            This donation affects your camp registration eligibility for 6 months
+                        </div>
+                        <div class="mt-2" style="color: #dc2626; font-weight: 600;">
+                            <i class="fas fa-heart me-1"></i> 3 lives potentially saved
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Camp Registration Eligibility Info -->
+    <section th:if="${hasDonatedInLastSixMonths}" class="history-section mt-4">
+        <div class="alert alert-warning">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
+                <div>
+                    <h6 class="alert-heading">Camp Registration Restriction Active</h6>
+                    <p class="mb-1">
+                        You have donated blood at a camp within the last 6 months.
+                        <strong>You cannot register for new blood donation camps until
+                            <span th:text="${#temporals.format(nextCampEligibilityDate, 'MMM dd, yyyy')}"></span></strong>.
+                    </p>
+                    <small class="text-muted">
+                        This restriction ensures your health and safety between donations.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    // Filter donations
+    function filterDonations(type) {
+        const rows = document.querySelectorAll('.donation-row, .timeline-item');
+        const buttons = document.querySelectorAll('.filter-btn');
+
+        // Update active button
+        buttons.forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+
+        const now = new Date();
+        const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+
+        rows.forEach(row => {
+            let show = false;
+            const rowType = row.getAttribute('data-type');
+            const rowDate = new Date(row.getAttribute('data-date'));
+
+            switch(type) {
+                case 'all':
+                    show = true;
+                    break;
+                case 'camp':
+                    show = rowType === 'camp';
+                    break;
+                case 'regular':
+                    show = rowType === 'regular';
+                    break;
+                case 'recent':
+                    show = rowDate >= sixMonthsAgo;
+                    break;
+            }
+
+            row.style.display = show ? '' : 'none';
+        });
+    }
+
+    // Toggle between table and timeline view
+    function toggleView(view) {
+        const tableView = document.getElementById('tableView');
+        const timelineView = document.getElementById('timelineView');
+        const buttons = document.querySelectorAll('.toggle-btn');
+
+        // Update active button
+        buttons.forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+
+        if (view === 'table') {
+            tableView.style.display = 'block';
+            timelineView.style.display = 'none';
+        } else {
+            tableView.style.display = 'none';
+            timelineView.style.display = 'block';
+        }
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show table view by default
+        toggleView('table');
+
+        // Add some interactive effects
+        const donationRows = document.querySelectorAll('.donation-row, .timeline-item');
+        donationRows.forEach(row => {
+            row.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateX(5px)';
+                this.style.transition = 'transform 0.2s ease';
+            });
+            row.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateX(0)';
+            });
+        });
+
+        // Add animation for stats counter
+        const statNumbers = document.querySelectorAll('.stat-number');
+        statNumbers.forEach(stat => {
+            const target = parseInt(stat.textContent) || 0;
+            if (target > 0) {
+                let current = 0;
+                const increment = target / 30;
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    stat.textContent = Math.floor(current);
+                }, 50);
+            }
+        });
+    });
+
+    // Print donation history
+    function printHistory() {
+        window.print();
+    }
+
+    // Export donation history (basic CSV)
+    function exportHistory() {
+        alert('Export feature would generate a CSV file with your donation history. This would include dates, types, locations, and impacts of your donations.');
+    }
+</script>
+
+<!-- Print and Export Buttons -->
+<div class="container mt-4 mb-4">
+    <div class="d-flex justify-content-center gap-3">
+        <button onclick="printHistory()" class="btn btn-outline-primary">
+            <i class="fas fa-print me-1"></i> Print History
+        </button>
+        <button onclick="exportHistory()" class="btn btn-outline-success">
+            <i class="fas fa-download me-1"></i> Export Data
+        </button>
+        <a href="/dashboard" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+</body>
+</html>

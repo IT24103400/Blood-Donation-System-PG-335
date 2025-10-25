@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volunteer Dashboard - Give Blood, Give Life</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 15px 0;
+            transition: transform 0.3s ease;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .donor-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            margin: 10px 0;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .camp-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            margin: 10px 0;
+            border-left: 4px solid #10b981;
+            transition: all 0.3s ease;
+        }
+
+        .camp-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.1);
+        }
+
+        .btn-volunteer {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-volunteer:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            color: white;
+        }
+
+        .btn-camp {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-camp:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+            background: linear-gradient(135deg, #059669, #047857);
+            color: white;
+        }
+
+        .btn-attendance {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-attendance:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
+            background: linear-gradient(135deg, #d97706, #b45309);
+            color: white;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .volunteer-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 900;
+            font-size: 2rem;
+            margin-right: 20px;
+        }
+
+        .nav-tabs .nav-link {
+            color: #374151;
+            font-weight: 600;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            margin-right: 5px;
+        }
+
+        .nav-tabs .nav-link.active {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+
+        .badge-volunteer {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .badge-pending {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .badge-camp {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .badge-urgent {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .verification-banner {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 2px solid #f59e0b;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .verification-banner.verified {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            border: 2px solid #10b981;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            margin: 10px 0;
+            border-left: 4px solid #10b981;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card.disabled {
+            border-left: 4px solid #9ca3af;
+            background: #f9fafb;
+            color: #6b7280;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .attendance-management-section {
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .camp-management-section {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border: 2px solid #10b981;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .urgent-alert {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            border: 2px solid #ef4444;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade {
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+<header class="header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="h3 mb-0">Give Blood, Give Life - Volunteer Dashboard</h1>
+            <nav>
+                <a href="/volunteer/dashboard" class="text-white mx-2 text-decoration-none fw-bold">Dashboard</a>
+                <a href="/volunteer/donors" class="text-white mx-2 text-decoration-none">Manage Donors</a>
+                <a href="/volunteer/camps" class="text-white mx-2 text-decoration-none">My Camps</a>
+                <a href="/volunteer/events" class="text-white mx-2 text-decoration-none">Events</a>
+                <a href="/volunteer/team" class="text-white mx-2 text-decoration-none">Team</a>
+                <a href="/volunteer/tasks" class="text-white mx-2 text-decoration-none">Tasks</a>
+                <a href="/logout" class="text-white mx-2 text-decoration-none" onclick="return confirmLogout();">Logout</a>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<div class="container mt-4">
+    <!-- Verification Status Banner -->
+    <div th:if="${isVerified}" class="verification-banner verified animate-fade">
+        <div class="d-flex align-items-center justify-content-center">
+            <i class="fas fa-check-circle text-success fs-3 me-3"></i>
+            <div>
+                <h5 class="mb-1 text-success">Account Verified</h5>
+                <p class="mb-0">Your volunteer account has been verified. You now have access to all features including blood donation camp organization and attendance management.</p>
+            </div>
+        </div>
+    </div>
+
+    <div th:unless="${isVerified}" class="verification-banner animate-fade pulse">
+        <div class="d-flex align-items-center justify-content-center">
+            <i class="fas fa-clock text-warning fs-3 me-3"></i>
+            <div>
+                <h5 class="mb-1 text-warning">Verification Pending</h5>
+                <p class="mb-0">Your volunteer account is pending verification. Some features may be limited until an administrator verifies your account.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Urgent Attendance Alerts -->
+    <div th:if="${isVerified and urgentCamps != null and not urgentCamps.isEmpty()}" class="urgent-alert animate-fade">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle text-danger fs-3 me-3"></i>
+                <div>
+                    <h5 class="mb-1 text-danger">Attention Needed</h5>
+                    <p class="mb-0">There are <strong th:text="${urgentCamps.size()}"></strong> camps today with low attendance rates that need your help!</p>
+                </div>
+            </div>
+            <a href="/volunteer/available-camps?filter=today" class="btn btn-danger">
+                <i class="fas fa-first-aid me-1"></i> Help Now
+            </a>
+        </div>
+    </div>
+
+    <!-- Welcome Section -->
+    <div class="row animate-fade">
+        <div class="col-md-4">
+            <div class="profile-card">
+                <div class="d-flex align-items-center">
+                    <div class="volunteer-avatar"
+                         th:text="${user.firstName.substring(0,1).toUpperCase() + user.lastName.substring(0,1).toUpperCase()}">
+                    </div>
+                    <div>
+                        <h4 th:text="'Welcome, ' + ${user.firstName} + '!'"></h4>
+                        <p class="text-muted mb-1">Volunteer</p>
+                        <span th:if="${isVerified}" class="badge-volunteer">
+                            <i class="fas fa-check-circle me-1"></i> VERIFIED VOLUNTEER
+                        </span>
+                        <span th:unless="${isVerified}" class="badge-pending">
+                            <i class="fas fa-clock me-1"></i> PENDING VERIFICATION
+                        </span>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <p class="mb-1"><strong>Email:</strong> <span th:text="${user.email}"></span></p>
+                    <p class="mb-0"><strong>Phone:</strong> <span th:text="${user.phone ?: 'Not provided'}"></span></p>
+                    <p class="mb-0 mt-2"><strong>Status:</strong>
+                        <span th:if="${isVerified}" class="text-success">Verified</span>
+                        <span th:unless="${isVerified}" class="text-warning">Pending Review</span>
+                    </p>
+                    <div th:if="${isVerified}" class="mt-2">
+                        <p class="mb-0"><strong>Camps Organized:</strong> <span th:text="${organizedCamps}">0</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Available Features Based on Verification Status -->
+            <div class="profile-card">
+                <h5 class="mb-3">Available Features</h5>
+
+                <!-- Features available to all volunteers -->
+                <div class="feature-card">
+                    <div class="feature-icon text-primary">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h6>View Donors</h6>
+                    <p class="text-muted mb-0">Browse and search donor information</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon text-primary">
+                        <i class="fas fa-calendar"></i>
+                    </div>
+                    <h6>View Events</h6>
+                    <p class="text-muted mb-0">See upcoming blood donation events</p>
+                </div>
+
+                <!-- Features only for verified volunteers -->
+                <div th:if="${isVerified}" class="feature-card">
+                    <div class="feature-icon text-warning">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <h6>Mark Attendance</h6>
+                    <p class="text-muted mb-0">Record attendance at any active camp</p>
+                </div>
+
+                <div th:if="${isVerified}" class="feature-card">
+                    <div class="feature-icon text-success">
+                        <i class="fas fa-campground"></i>
+                    </div>
+                    <h6>Organize Camps</h6>
+                    <p class="text-muted mb-0">Create and manage blood donation camps</p>
+                </div>
+
+                <div th:if="${isVerified}" class="feature-card">
+                    <div class="feature-icon text-success">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <h6>Manage Tasks</h6>
+                    <p class="text-muted mb-0">Assign and complete volunteer tasks</p>
+                </div>
+
+                <div th:if="${isVerified}" class="feature-card">
+                    <div class="feature-icon text-success">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h6>Register Donors</h6>
+                    <p class="text-muted mb-0">Register new donors in the system</p>
+                </div>
+
+                <div th:if="${isVerified}" class="feature-card">
+                    <div class="feature-icon text-success">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h6>Generate Reports</h6>
+                    <p class="text-muted mb-0">Create and export donor reports</p>
+                </div>
+
+                <!-- Features disabled for unverified volunteers -->
+                <div th:unless="${isVerified}" class="feature-card disabled">
+                    <div class="feature-icon text-muted">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <h6>Mark Attendance</h6>
+                    <p class="text-muted mb-0">Available after verification</p>
+                </div>
+
+                <div th:unless="${isVerified}" class="feature-card disabled">
+                    <div class="feature-icon text-muted">
+                        <i class="fas fa-campground"></i>
+                    </div>
+                    <h6>Organize Camps</h6>
+                    <p class="text-muted mb-0">Available after verification</p>
+                </div>
+
+                <div th:unless="${isVerified}" class="feature-card disabled">
+                    <div class="feature-icon text-muted">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <h6>Manage Tasks</h6>
+                    <p class="text-muted mb-0">Available after verification</p>
+                </div>
+
+                <div th:unless="${isVerified}" class="feature-card disabled">
+                    <div class="feature-icon text-muted">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h6>Register Donors</h6>
+                    <p class="text-muted mb-0">Available after verification</p>
+                </div>
+
+                <div th:unless="${isVerified}" class="feature-card disabled">
+                    <div class="feature-icon text-muted">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h6>Generate Reports</h6>
+                    <p class="text-muted mb-0">Available after verification</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <!-- Updated Stats Grid -->
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stats-card text-center">
+                        <div class="stat-number" th:text="${totalDonors}">0</div>
+                        <div class="text-muted fw-semibold">Total Donors</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card text-center">
+                        <div class="stat-number" th:text="${pendingRequests}">0</div>
+                        <div class="text-muted fw-semibold">Pending Requests</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card text-center">
+                        <div class="stat-number" th:text="${completedTasks}">0</div>
+                        <div class="text-muted fw-semibold">Completed Tasks</div>
+                    </div>
+                </div>
+                <!-- New Camp Stats Card -->
+                <div class="col-md-3" th:if="${isVerified}">
+                    <div class="stats-card text-center">
+                        <div class="stat-number" th:text="${organizedCamps}">0</div>
+                        <div class="text-muted fw-semibold">Camps Organized</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Stats for Verified Volunteers -->
+            <div th:if="${isVerified}" class="row mt-3">
+                <div class="col-md-4">
+                    <div class="stats-card text-center">
+                        <div class="stat-number" th:text="${hoursVolunteered}">0</div>
+                        <div class="text-muted fw-semibold">Hours Volunteered</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card text-center">
+                        <div class="stat-number" th:text="${donorsAssisted}">0</div>
+                        <div class="text-muted fw-semibold">Donors Assisted</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card text-center">
+                        <div class="stat-number" th:text="${teamRanking}">0</div>
+                        <div class="text-muted fw-semibold">Team Ranking</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="stats-card mt-3">
+                <h5 class="mb-3">Quick Actions</h5>
+                <div class="d-grid gap-2 d-md-flex">
+                    <a href="/volunteer/donors" class="btn btn-volunteer me-md-2">
+                        <i class="fas fa-users me-1"></i> View Donor List
+                    </a>
+                    <a th:if="${isVerified}" href="/volunteer/available-camps" class="btn btn-attendance me-md-2">
+                        <i class="fas fa-clipboard-check me-1"></i> Mark Attendance
+                    </a>
+                    <a th:unless="${isVerified}" href="#" class="btn btn-secondary disabled me-md-2">
+                        <i class="fas fa-clipboard-check me-1"></i> Mark Attendance
+                    </a>
+                    <a href="/volunteer/events" class="btn btn-volunteer me-md-2">
+                        <i class="fas fa-calendar me-1"></i> View Events
+                    </a>
+                    <a th:if="${isVerified}" href="/volunteer/tasks" class="btn btn-volunteer me-md-2">
+                        <i class="fas fa-tasks me-1"></i> Manage Tasks
+                    </a>
+                    <a th:unless="${isVerified}" href="#" class="btn btn-secondary disabled me-md-2">
+                        <i class="fas fa-tasks me-1"></i> Manage Tasks
+                    </a>
+                </div>
+            </div>
+
+            <!-- Attendance Management Section -->
+            <div th:if="${isVerified}" class="attendance-management-section mt-3">
+                <h5 class="mb-3"><i class="fas fa-clipboard-check me-2"></i>Attendance Management</h5>
+                <p class="text-muted mb-3">As a verified volunteer, you can help mark attendance at any active blood donation camp organized by verified volunteers.</p>
+
+                <div class="d-grid gap-2 d-md-flex">
+                    <a href="/volunteer/available-camps" class="btn btn-warning me-md-2">
+                        <i class="fas fa-clipboard-list me-1"></i> View Available Camps
+                        <span th:if="${availableCamps != null}" class="badge bg-light text-dark ms-1" th:text="${availableCamps.size()}"></span>
+                    </a>
+                    <a th:if="${todaysCamps != null and todaysCamps.size() > 0}"
+                       href="/volunteer/available-camps?filter=today"
+                       class="btn btn-outline-warning me-md-2">
+                        <i class="fas fa-calendar-day me-1"></i> Today's Camps
+                        <span class="badge bg-warning text-dark ms-1" th:text="${todaysCamps.size()}"></span>
+                    </a>
+                    <a href="/volunteer/attendance-dashboard" class="btn btn-outline-warning">
+                        <i class="fas fa-chart-line me-1"></i> Attendance Dashboard
+                    </a>
+                </div>
+
+                <!-- Quick Stats for Today's Camps -->
+                <div th:if="${todaysCamps != null and todaysCamps.size() > 0}" class="mt-3">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <small class="text-muted">Active Today</small>
+                            <div class="fw-bold text-primary" th:text="${todaysCamps.size()}">0</div>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted">Need Attention</small>
+                            <div class="fw-bold text-danger" th:text="${urgentCamps != null ? urgentCamps.size() : 0}">0</div>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted">Available</small>
+                            <div class="fw-bold text-success" th:text="${availableCamps != null ? availableCamps.size() : 0}">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Urgent Camps List -->
+                <div th:if="${urgentCamps != null and not urgentCamps.isEmpty()}" class="mt-3">
+                    <h6 class="text-danger mb-2"><i class="fas fa-exclamation-triangle me-1"></i>Urgent Attention Needed:</h6>
+                    <div class="small">
+                        <div th:each="urgentCamp : ${urgentCamps}" class="mb-1">
+                            <i class="fas fa-campground text-danger me-1"></i>
+                            <span th:text="${urgentCamp.camp.campName}"></span> -
+                            <span class="text-danger" th:text="${urgentCamp.attendanceRate} + '% attendance'"></span>
+                            (<span th:text="${urgentCamp.attendedCount} + '/' + ${urgentCamp.registeredCount} + ' donors'"></span>)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Camp Management Section -->
+            <div th:if="${isVerified}" class="camp-management-section mt-3">
+                <h5 class="mb-3"><i class="fas fa-campground me-2"></i>Blood Donation Camp Management</h5>
+                <p class="text-muted mb-3">As a verified volunteer, you can organize and manage blood donation camps in your community.</p>
+                <div class="d-grid gap-2 d-md-flex">
+                    <a href="/volunteer/camps/create" class="btn btn-camp me-md-2">
+                        <i class="fas fa-plus me-1"></i> Organize New Camp
+                    </a>
+                    <a href="/volunteer/camps" class="btn btn-outline-success me-md-2">
+                        <i class="fas fa-list me-1"></i> My Camps
+                        <span th:if="${organizedCamps > 0}" class="badge bg-success ms-1" th:text="${organizedCamps}"></span>
+                    </a>
+                    <a href="/volunteer/camps" class="btn btn-outline-primary">
+                        <i class="fas fa-eye me-1"></i> View All Camps
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Tips Section -->
+            <div class="stats-card mt-3">
+                <h5 class="mb-3">Quick Tips</h5>
+                <div th:if="${isVerified}">
+                    <div class="alert alert-success">
+                        <strong>You're all set!</strong> As a verified volunteer, you have access to all features including task management, donor registration, report generation, blood donation camp organization, and attendance management.
+                    </div>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Help mark attendance at active camps to support the community</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Complete your assigned tasks on time</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Update donor information regularly</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Organize blood donation camps in your community</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Report any issues to administrators</li>
+                    </ul>
+                </div>
+                <div th:unless="${isVerified}">
+                    <div class="alert alert-warning">
+                        <strong>Getting Started:</strong> While waiting for verification, you can familiarize yourself with the donor database and upcoming events.
+                    </div>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-info-circle text-warning me-2"></i> Browse donor information to understand the system</li>
+                        <li class="mb-2"><i class="fas fa-info-circle text-warning me-2"></i> Review upcoming events in your area</li>
+                        <li class="mb-2"><i class="fas fa-info-circle text-warning me-2"></i> Contact administrators if verification is taking too long</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Upcoming Camps Section -->
+            <div th:if="${isVerified}" class="stats-card mt-3">
+                <h5 class="mb-3"><i class="fas fa-calendar-alt me-2"></i>My Upcoming Blood Donation Camps</h5>
+                <div th:if="${myCamps != null and not #lists.isEmpty(myCamps)}">
+                    <div th:each="camp : ${myCamps}">
+                        <div class="camp-card mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-2 text-success" th:text="${camp.campName}">Camp Name</h6>
+                                    <p class="mb-2 text-muted small" th:text="${camp.description}">Camp description goes here. This provides details about the blood donation camp event.</p>
+                                    <div class="camp-details">
+                                        <small class="text-muted">
+                                            <i class="fas fa-map-marker-alt me-1"></i>
+                                            <span th:text="${camp.location}">Community Center, Main Street</span> |
+                                            <i class="fas fa-calendar me-1"></i>
+                                            <span th:text="${#temporals.format(camp.campDate, 'MMM dd, yyyy')}">Jan 15, 2024</span> |
+                                            <i class="fas fa-clock me-1"></i>
+                                            <span th:text="${camp.startTime + ' - ' + camp.endTime}">09:00 - 16:00</span>
+                                        </small>
+                                    </div>
+                                    <div class="mt-2">
+                                        <span class="badge bg-primary">
+                                            <i class="fas fa-users me-1"></i>
+                                            Capacity: <span th:text="${camp.currentDonors}">0</span>/<span th:text="${camp.maxDonors}">50</span>
+                                        </span>
+                                        <span class="badge bg-success ms-1">
+                                            <i class="fas fa-calendar-check me-1"></i>
+                                            <span th:text="${#temporals.format(camp.campDate, 'EEEE')}">Monday</span>
+                                        </span>
+                                        <span class="badge bg-info ms-1">
+                                            <i class="fas fa-user me-1"></i>
+                                            Organized by You
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="ms-3">
+                                    <a th:href="@{/volunteer/camps}" class="btn btn-sm btn-outline-success">
+                                        <i class="fas fa-edit me-1"></i> Manage
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="/volunteer/camps/create" class="btn btn-camp">
+                            <i class="fas fa-plus me-1"></i> Organize Another Camp
+                        </a>
+                    </div>
+                </div>
+                <div th:if="${myCamps == null or #lists.isEmpty(myCamps)}" class="text-center py-4">
+                    <i class="fas fa-campground fs-1 text-muted mb-3"></i>
+                    <h6 class="text-muted">No Upcoming Camps</h6>
+                    <p class="text-muted mb-3">You haven't organized any blood donation camps yet.</p>
+                    <a href="/volunteer/camps/create" class="btn btn-camp">
+                        <i class="fas fa-plus me-1"></i> Create Your First Camp
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Donors Management Section -->
+    <div class="row mt-4 animate-fade" style="animation-delay: 0.2s;">
+        <div class="col-12">
+            <div class="profile-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="mb-0">Donor Management</h4>
+                    <span class="badge bg-primary">All Volunteers</span>
+                </div>
+
+                <ul class="nav nav-tabs mb-3" id="donorTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="all-donors-tab" data-bs-toggle="tab"
+                                data-bs-target="#all-donors" type="button" role="tab">
+                            All Donors (<span th:text="${totalDonors}">0</span>)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="active-donors-tab" data-bs-toggle="tab"
+                                data-bs-target="#active-donors" type="button" role="tab">
+                            Active Donors
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="new-donors-tab" data-bs-toggle="tab"
+                                data-bs-target="#new-donors" type="button" role="tab">
+                            New Registrations
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="donorTabsContent">
+                    <div class="tab-pane fade show active" id="all-donors" role="tabpanel">
+                        <div th:if="${donors != null and not #lists.isEmpty(donors)}">
+                            <div th:each="donor : ${donors}" class="donor-card">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1" th:text="${donor.firstName + ' ' + donor.lastName}"></h6>
+                                        <p class="text-muted mb-1" th:text="'Blood Type: ' + ${donor.bloodType ?: 'Not specified'}"></p>
+                                        <small class="text-muted" th:text="'Email: ' + ${donor.email}"></small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-success" th:if="${donor.bloodType != null}">Active Donor</span>
+                                        <span class="badge bg-warning" th:if="${donor.bloodType == null}">Incomplete Profile</span>
+                                        <br>
+                                        <small class="text-muted" th:text="'Phone: ' + ${donor.phone ?: 'Not provided'}"></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:if="${donors == null or #lists.isEmpty(donors)}" class="text-center py-4">
+                            <i class="fas fa-users fs-1 text-muted mb-3"></i>
+                            <p class="text-muted">No donors registered yet.</p>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="active-donors" role="tabpanel">
+                        <div class="text-center py-4">
+                            <i class="fas fa-user-check fs-1 text-muted mb-3"></i>
+                            <p class="text-muted">Active donors will be shown here.</p>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="new-donors" role="tabpanel">
+                        <div class="text-center py-4">
+                            <i class="fas fa-user-plus fs-1 text-muted mb-3"></i>
+                            <p class="text-muted">New donor registrations will be shown here.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Events & Global Stats Section -->
+    <div class="row mt-4 animate-fade" style="animation-delay: 0.4s;">
+        <div class="col-md-6">
+            <div class="profile-card">
+                <h5 class="mb-3">Upcoming Events</h5>
+                <div class="text-center py-4">
+                    <i class="fas fa-calendar fs-1 text-muted mb-3"></i>
+                    <p class="text-muted">No upcoming events scheduled.</p>
+                    <small class="text-muted">Events functionality coming soon</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="profile-card">
+                <h5 class="mb-3">Global Statistics</h5>
+                <div th:if="${globalStats != null}" class="text-center">
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <div class="text-primary fw-bold fs-4" th:text="${globalStats.totalCamps}">0</div>
+                            <small class="text-muted">Total Camps</small>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-success fw-bold fs-4" th:text="${globalStats.totalAttendees}">0</div>
+                            <small class="text-muted">Total Attendees</small>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-warning fw-bold fs-4" th:text="${globalStats.totalBloodDonations}">0</div>
+                            <small class="text-muted">Blood Donations</small>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-info fw-bold fs-4" th:text="${globalStats.totalRegisteredDonors}">0</div>
+                            <small class="text-muted">Registered Donors</small>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            Donation Rate: <span th:text="${#numbers.formatDecimal(globalStats.globalDonationRate, 1, 1)}">0</span>%
+                        </small>
+                    </div>
+                </div>
+                <div th:if="${globalStats == null}" class="text-center py-4">
+                    <i class="fas fa-chart-bar fs-1 text-muted mb-3"></i>
+                    <p class="text-muted">Global statistics loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmLogout() {
+        return confirm("Are you sure you want to logout?");
+    }
+
+    // Initialize Bootstrap components
+    document.addEventListener('DOMContentLoaded', function() {
+        // Counter animation for stats
+        const counters = document.querySelectorAll('.stat-number');
+        counters.forEach(counter => {
+            const target = parseInt(counter.textContent) || 0;
+            let current = 0;
+            const increment = target / 50;
+
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                counter.textContent = Math.floor(current);
+            }, 20);
+        });
+
+        // Add hover effects to cards
+        const cards = document.querySelectorAll('.stats-card, .donor-card, .feature-card:not(.disabled), .camp-card');
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
+                this.style.transform = 'translateY(-2px)';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.boxShadow = '0 5px 20px rgba(0, 0, 0, 0.1)';
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Initialize tab functionality
+        const triggerTabList = [].slice.call(document.querySelectorAll('#donorTabs button'));
+        triggerTabList.forEach(function (triggerEl) {
+            var tabTrigger = new bootstrap.Tab(triggerEl);
+            triggerEl.addEventListener('click', function (event) {
+                event.preventDefault();
+                tabTrigger.show();
+            });
+        });
+    });
+
+    // Auto-hide alerts after 5 seconds
+    setTimeout(() => {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        });
+    }, 5000);
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

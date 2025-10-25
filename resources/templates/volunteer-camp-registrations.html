@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camp Registrations - Give Blood, Give Life</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            border: none;
+            margin-bottom: 20px;
+        }
+        .stats-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+        }
+        .registrant-card {
+            border-left: 4px solid #3b82f6;
+            transition: transform 0.3s ease;
+        }
+        .registrant-card:hover {
+            transform: translateY(-2px);
+        }
+        .badge-registered {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        .badge-cancelled {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+        }
+        .badge-restricted {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+        .search-box {
+            border-radius: 25px;
+            padding: 12px 20px;
+            border: 2px solid #e5e7eb;
+        }
+        .donor-status {
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+        }
+        .status-eligible {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-restricted {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .status-unverified {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+        .tooltip-inner {
+            max-width: 300px;
+            padding: 0.5rem 1rem;
+        }
+    </style>
+</head>
+<body>
+<header class="header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="h3 mb-0">Camp Registrations</h1>
+            <nav>
+                <a href="/volunteer/dashboard" class="text-white mx-2 text-decoration-none">Dashboard</a>
+                <a href="/volunteer/camps" class="text-white mx-2 text-decoration-none">My Camps</a>
+                <a href="/logout" class="text-white mx-2 text-decoration-none">Logout</a>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<div class="container mt-4">
+    <!-- Flash Messages -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Camp Header -->
+    <div th:if="${camp != null}" class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-1" th:text="${camp.campName}">Camp Name</h4>
+                    <p class="mb-0" th:text="${camp.location + ' - ' + #temporals.format(camp.campDate, 'MMM dd, yyyy')}"></p>
+                </div>
+                <a th:href="@{/volunteer/camps}" class="btn btn-light">
+                    <i class="fas fa-arrow-left me-1"></i> Back to Camps
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error message if camp not found -->
+    <div th:if="${camp == null}" class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        Camp not found or you don't have permission to view this camp.
+        <a href="/volunteer/camps" class="alert-link">Return to My Camps</a>
+    </div>
+
+    <!-- Only show content if camp exists -->
+    <div th:if="${camp != null}">
+        <!-- Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stat-number text-primary" th:text="${stats?.totalRegistrations ?: 0}">0</div>
+                    <div class="text-muted">Total Registrations</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stat-number text-success" th:text="${stats?.activeRegistrations ?: 0}">0</div>
+                    <div class="text-muted">Active Registrations</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stat-number text-info" th:text="${stats?.cancelledRegistrations ?: 0}">0</div>
+                    <div class="text-muted">Cancelled</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stat-number text-warning" th:text="${(stats != null ? #numbers.formatDecimal(stats.registrationRate, 1, 1) : 0) + '%'}">0%</div>
+                    <div class="text-muted">Registration Rate</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Actions -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <form method="get" class="d-flex">
+                            <input type="text"
+                                   name="search"
+                                   class="form-control search-box me-2"
+                                   placeholder="Search donors by name..."
+                                   th:value="${searchQuery}">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-1"></i> Search
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a th:href="@{/volunteer/camps/{id}/registrations(id=${camp.id})}"
+                           class="btn btn-outline-secondary">
+                            <i class="fas fa-sync me-1"></i> Show All
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registration Restrictions Info -->
+        <div class="alert alert-warning">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle me-2 fs-5"></i>
+                <div>
+                    <strong>6-Month Restriction Notice:</strong> Donors who have donated blood at camps cannot register for new camps for 6 months.
+                    This ensures donor health and safety. Check donor eligibility before recording blood donations.
+                </div>
+            </div>
+        </div>
+
+        <!-- Registrations List -->
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-users me-2"></i>
+                    Camp Registrations
+                    <span class="badge bg-light text-dark ms-2" th:text="${registrations != null ? registrations.size() : 0}">0</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div th:if="${registrations != null and not registrations.isEmpty()}">
+                    <div th:each="registration : ${registrations}"
+                         class="card registrant-card mb-3">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <h6 class="mb-1" th:text="${registration.donor?.firstName + ' ' + registration.donor?.lastName}"></h6>
+                                    <small class="text-muted" th:text="'Blood Type: ' + ${registration.donor?.bloodType ?: 'Not specified'}"></small>
+                                    <!-- Donor Eligibility Status -->
+                                    <div th:if="${registration.donor}" class="mt-1">
+                                        <span th:if="${registration.donor.isVerified}"
+                                              class="donor-status status-eligible"
+                                              data-bs-toggle="tooltip"
+                                              title="Verified donor - eligible for camp registration">
+                                            <i class="fas fa-check-circle me-1"></i>Verified
+                                        </span>
+                                        <span th:unless="${registration.donor.isVerified}"
+                                              class="donor-status status-unverified"
+                                              data-bs-toggle="tooltip"
+                                              title="Donor not verified - cannot donate">
+                                            <i class="fas fa-times-circle me-1"></i>Unverified
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <small class="text-muted">Email</small>
+                                    <div th:text="${registration.donor?.email}"></div>
+                                </div>
+                                <div class="col-md-2">
+                                    <small class="text-muted">Phone</small>
+                                    <div th:text="${registration.donor?.phone ?: 'Not provided'}"></div>
+                                </div>
+                                <div class="col-md-2">
+                                    <small class="text-muted">Registered At</small>
+                                    <div th:text="${#temporals.format(registration.registeredAt, 'MMM dd, HH:mm')}"></div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <span th:if="${registration.status == 'REGISTERED'}" class="badge badge-registered">
+                                            <i class="fas fa-check-circle me-1"></i> Registered
+                                        </span>
+                                        <span th:if="${registration.status == 'CANCELLED'}" class="badge badge-cancelled">
+                                            <i class="fas fa-times-circle me-1"></i> Cancelled
+                                        </span>
+
+                                        <div class="btn-group">
+                                            <a th:href="@{/volunteer/camps/{campId}/attendance/{donorId}(campId=${camp.id}, donorId=${registration.donor?.id})}"
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye me-1"></i> View
+                                            </a>
+                                            <button th:if="${registration.donor?.isVerified}"
+                                                    class="btn btn-sm btn-outline-success"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#donationModal"
+                                                    th:attr="data-donor-id=${registration.donor?.id},
+                                                            data-donor-name=${registration.donor?.firstName + ' ' + registration.donor?.lastName}">
+                                                <i class="fas fa-tint me-1"></i> Mark Donation
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div th:if="${registrations == null or registrations.isEmpty()}" class="text-center py-5">
+                    <i class="fas fa-users fs-1 text-muted mb-3"></i>
+                    <h5 class="text-muted">No Registrations Found</h5>
+                    <p class="text-muted" th:if="${searchQuery}">No registrations match your search criteria.</p>
+                    <p class="text-muted" th:unless="${searchQuery}">No one has registered for this camp yet.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2 d-md-flex">
+                    <a th:href="@{/volunteer/camps/{id}(id=${camp.id})}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-campground me-1"></i> View Camp Details
+                    </a>
+                    <a th:href="@{/volunteer/camps/{id}/attendance(id=${camp.id})}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-clipboard-check me-1"></i> View Attendance
+                    </a>
+                    <a th:href="@{/volunteer/camps/{id}/quick-attendance(id=${camp.id})}" class="btn btn-outline-success">
+                        <i class="fas fa-bolt me-1"></i> Quick Attendance
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mark Donation Modal -->
+<div class="modal fade" id="donationModal" tabindex="-1" aria-labelledby="donationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="donationModalLabel">
+                    <i class="fas fa-tint me-2"></i>Mark Blood Donation
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Important:</strong> Marking this donation will restrict the donor from registering for new camps for 6 months.
+                </div>
+                <p>You are about to mark a blood donation for:</p>
+                <h6 id="donorName" class="text-center mb-3"></h6>
+                <form id="donationForm" th:action="@{/volunteer/camps/{campId}/attendance/mark-donation(campId=${camp.id})}" method="post">
+                    <input type="hidden" name="donorId" id="modalDonorId">
+                    <div class="mb-3">
+                        <label for="donationNotes" class="form-label">Notes (Optional):</label>
+                        <textarea class="form-control" id="donationNotes" name="notes" rows="3"
+                                  placeholder="Add any notes about the donation..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="document.getElementById('donationForm').submit()">
+                    <i class="fas fa-check me-1"></i> Confirm Donation
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Auto-hide alerts after 5 seconds
+    setTimeout(() => {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        });
+    }, 5000);
+
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Donation modal setup
+        const donationModal = document.getElementById('donationModal');
+        if (donationModal) {
+            donationModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const donorId = button.getAttribute('data-donor-id');
+                const donorName = button.getAttribute('data-donor-name');
+
+                document.getElementById('modalDonorId').value = donorId;
+                document.getElementById('donorName').textContent = donorName;
+            });
+        }
+
+        // Add confirmation for donation marking
+        const donationForm = document.getElementById('donationForm');
+        if (donationForm) {
+            donationForm.addEventListener('submit', function(e) {
+                if (!confirm('Are you sure you want to mark this blood donation? This will restrict the donor from camp registration for 6 months.')) {
+                    e.preventDefault();
+                }
+            });
+        }
+    });
+
+    // Search functionality enhancement
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                // You can add real-time search functionality here if needed
+            });
+        }
+    });
+</script>
+</body>
+</html>

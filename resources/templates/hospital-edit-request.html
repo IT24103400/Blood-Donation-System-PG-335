@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Blood Request - Give Blood, Give Life</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            color: white;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3);
+        }
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(22, 163, 74, 0.1);
+            border-left: 4px solid #16a34a;
+        }
+        .btn-hospital {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-hospital:hover {
+            background: linear-gradient(135deg, #15803d, #166534);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(22, 163, 74, 0.4);
+        }
+    </style>
+</head>
+<body>
+<header class="header text-center">
+    <h1 class="mb-2"><i class="fas fa-hospital me-2"></i>Give Blood, Give Life - Edit Blood Request</h1>
+    <nav class="d-flex justify-content-center gap-3">
+        <a href="/hospital-staff/dashboard" class="nav-link text-white">Dashboard</a>
+        <a href="/hospital-staff/request-history" class="nav-link text-white">Request History</a>
+        <a href="/hospital-staff/new-request" class="nav-link text-white">New Request</a>
+        <a href="/hospital-staff/feedback" class="nav-link text-white">My Feedback</a>
+        <a href="/logout" class="nav-link text-white" onclick="return confirmLogout();">Logout</a>
+    </nav>
+</header>
+
+<div class="container mt-4">
+    <!-- Flash Messages -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="form-card p-4">
+                <h4 class="mb-4">Edit Blood Request #<span th:text="${bloodRequestDTO.requestId}"></span></h4>
+
+                <form th:action="@{/hospital-staff/edit-request/__${bloodRequestDTO.requestId}__}" method="post" th:object="${bloodRequestDTO}">
+                    <!-- Hospital Information Section -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="border-bottom pb-2"><i class="fas fa-hospital me-2"></i>Hospital Information</h6>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Hospital Name *</label>
+                                <input type="text" class="form-control" th:field="*{hospitalName}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Hospital Address *</label>
+                                <input type="text" class="form-control" th:field="*{hospitalAddress}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Contact Person</label>
+                                <input type="text" class="form-control" th:field="*{contactPerson}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Contact Phone</label>
+                                <input type="tel" class="form-control" th:field="*{contactPhone}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Blood Request Details Section -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Blood Type *</label>
+                                <select class="form-select" th:field="*{bloodType}" required>
+                                    <option value="">Select Blood Type</option>
+                                    <option value="A+">A+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B+">B+</option>
+                                    <option value="B-">B-</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option>
+                                    <option value="O+">O+</option>
+                                    <option value="O-">O-</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Quantity (Units) *</label>
+                                <input type="number" class="form-control" th:field="*{quantity}" min="1" required>
+                                <small class="text-muted">Minimum 1 unit required</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Urgency Level *</label>
+                        <select class="form-select" th:field="*{urgency}" required>
+                            <option value="">Select Urgency</option>
+                            <option value="LOW">Low - Routine request</option>
+                            <option value="MEDIUM">Medium - Scheduled surgery</option>
+                            <option value="HIGH">High - Emergency case</option>
+                            <option value="CRITICAL">Critical - Life-threatening situation</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Patient Details *</label>
+                        <textarea class="form-control" th:field="*{patientDetails}" rows="3" required></textarea>
+                        <small class="text-muted">Please provide detailed patient information</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Additional Notes</label>
+                        <textarea class="form-control" th:field="*{notes}" rows="2"></textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <a th:href="@{/hospital-staff/request-details/__${bloodRequestDTO.requestId}__}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-hospital">
+                            <i class="fas fa-save me-1"></i> Update Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function confirmLogout() {
+        return confirm("Are you sure you want to logout?");
+    }
+
+    // Form validation
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const bloodType = this.querySelector('[name="bloodType"]').value;
+                const quantity = this.querySelector('[name="quantity"]').value;
+                const urgency = this.querySelector('[name="urgency"]').value;
+                const patientDetails = this.querySelector('[name="patientDetails"]').value;
+                const hospitalName = this.querySelector('[name="hospitalName"]').value;
+                const hospitalAddress = this.querySelector('[name="hospitalAddress"]').value;
+
+                if (!bloodType || !quantity || !urgency || !patientDetails || !hospitalName || !hospitalAddress) {
+                    e.preventDefault();
+                    alert('Please fill all required fields marked with *');
+                    return false;
+                }
+
+                if (parseInt(quantity) < 1) {
+                    e.preventDefault();
+                    alert('Quantity must be at least 1 unit');
+                    return false;
+                }
+            });
+        }
+
+        // Auto-hide alerts
+        setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(alert => {
+                bootstrap.Alert.getOrCreateInstance(alert).close();
+            });
+        }, 5000);
+    });
+</script>
+</body>
+</html>

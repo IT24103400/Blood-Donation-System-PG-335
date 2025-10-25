@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donor Profile - Give Blood, Give Life</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #374151;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #dc2626;
+        }
+
+        .main-content {
+            padding-top: 100px;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        .profile-header {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 900;
+            font-size: 3rem;
+            box-shadow: 0 15px 35px rgba(220, 38, 38, 0.3);
+        }
+
+        .profile-info h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-subtitle {
+            color: #6b7280;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .blood-type-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .profile-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #dc2626;
+            padding-bottom: 0.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #dc2626;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
+
+        .form-input:disabled {
+            background: #f3f4f6;
+            cursor: not-allowed;
+        }
+
+        .info-display {
+            background: #f8fafc;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(107, 114, 128, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 38, 38, 0.3);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #dc2626;
+        }
+
+        .readonly-section {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .warning-box {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .warning-box h4 {
+            color: #92400e;
+            margin-bottom: 0.5rem;
+        }
+
+        .warning-box p {
+            color: #92400e;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<header class="header">
+    <nav class="nav">
+        <div class="logo">Give Blood, Give Life</div>
+        <ul class="nav-links">
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/donor/history">History</a></li>
+            <li><a href="/donor/profile" class="active">Profile</a></li>
+            <li><a href="#appointments">Appointments</a></li>
+        </ul>
+        <div>
+            <a href="/logout" class="btn btn-secondary">Logout</a>
+        </div>
+    </nav>
+</header>
+
+<main class="main-content">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="profile-avatar" th:text="${user.firstName.substring(0,1).toUpperCase() + user.lastName.substring(0,1).toUpperCase()}">JD</div>
+        <div class="profile-info">
+            <h1 th:text="${user.firstName + ' ' + user.lastName}">John Doe</h1>
+            <div class="profile-subtitle">Blood Donor Profile</div>
+            <div class="blood-type-badge" th:text="'Blood Type: ' + ${user.bloodType}">Blood Type: O+</div>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <!-- Personal Information Section -->
+    <div class="profile-section">
+        <h2 class="section-title">Personal Information</h2>
+
+        <form th:if="${isEditing}" th:action="@{/donor/profile/update}" method="post" th:object="${user}">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="firstName">First Name</label>
+                    <input type="text" id="firstName" th:field="*{firstName}" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="lastName">Last Name</label>
+                    <input type="text" id="lastName" th:field="*{lastName}" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="phone">Phone Number</label>
+                    <input type="tel" id="phone" th:field="*{phone}" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="address">Address</label>
+                    <textarea id="address" th:field="*{address}" class="form-input" rows="3"></textarea>
+                </div>
+
+                <div th:if="${isEditing and user.bloodType == null}" class="form-group">
+                    <label class="form-label" for="bloodType">Blood Type *</label>
+                    <select id="bloodType" name="bloodType" class="form-input" required>
+                        <option value="">Select your blood type</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn btn-success">Save Changes</button>
+                <a href="/donor/profile" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+
+        <!-- Read-only view -->
+        <div th:unless="${isEditing}">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <div class="info-display" th:text="${user.firstName}">John</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Last Name</label>
+                    <div class="info-display" th:text="${user.lastName}">Doe</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <div class="info-display" th:text="${user.phone ?: 'Not provided'}">+1-555-0123</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Address</label>
+                    <div class="info-display" th:text="${user.address ?: 'Not provided'}">123 Main St, City, State</div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <a href="/donor/profile/edit" class="btn btn-primary">Edit Profile</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Information Section -->
+    <div class="profile-section">
+        <h2 class="section-title">Account Information</h2>
+        <div class="readonly-section">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <div class="info-display" th:text="${user.email}">john.doe@email.com</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Blood Type</label>
+                    <div class="info-display" th:text="${user.bloodType ?: 'Not set - Please update'}">O+</div>
+                    <div th:if="${user.bloodType == null}" style="color: #dc2626; font-size: 0.9rem; margin-top: 0.5rem;">
+                        Blood type is required for donation eligibility
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Date of Birth</label>
+                    <div class="info-display" th:text="${user.dateOfBirth != null ? #temporals.format(user.dateOfBirth, 'MMM dd, yyyy') : 'Not provided'}">Jan 01, 1990</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Account Type</label>
+                    <div class="info-display">Blood Donor</div>
+                </div>
+            </div>
+            <p style="color: #6b7280; font-size: 0.9rem; margin-top: 1rem;">
+                <strong>Note:</strong> Email, blood type, and date of birth cannot be changed. Contact system administrator if you need to update these fields.
+            </p>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="profile-section">
+        <h2 class="section-title">Quick Actions</h2>
+        <div class="button-group">
+            <a href="/donor/history" class="btn btn-primary">View Donation History</a>
+            <a href="/dashboard" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Account Management -->
+    <div class="profile-section">
+        <h2 class="section-title">Account Management</h2>
+        <div class="warning-box">
+            <h4>Account Deletion</h4>
+            <p>
+                If you no longer wish to be part of our blood donation community, you can permanently delete your account.
+                This action cannot be undone and will remove all your donation history.
+            </p>
+        </div>
+        <div class="button-group">
+            <a href="/donor/delete-account" class="btn btn-danger">
+                Delete My Account
+            </a>
+        </div>
+    </div>
+</main>
+
+<script>
+    // Form validation
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+
+            if (!firstName || !lastName) {
+                e.preventDefault();
+                alert('First name and last name are required!');
+                return false;
+            }
+
+            if (firstName.length < 2 || lastName.length < 2) {
+                e.preventDefault();
+                alert('First name and last name must be at least 2 characters long!');
+                return false;
+            }
+        });
+    }
+
+    // Auto-hide alerts after 5 seconds
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.opacity = '0';
+            alert.style.transform = 'translateY(-10px)';
+            setTimeout(() => alert.remove(), 300);
+        }, 5000);
+    });
+</script>
+</body>
+</html>
